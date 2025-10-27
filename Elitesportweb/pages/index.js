@@ -365,6 +365,36 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Map Section */}
+      <section className="position-relative">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.8977!2d80.2015719!3d6.9537892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae3a97a9266e939%3A0x447841913a8b1b0e!2sElite%20Sports%20Academy!5e0!3m2!1sen!2slk!4v1234567890"
+          width="100%"
+          height="400"
+          style={{border: 0}}
+          allowFullScreen
+          loading="lazy"
+        ></iframe>
+        <div className="position-absolute top-0 start-0 m-4 bg-dark text-white p-3 rounded shadow">
+          <h5 className="mb-2" style={{color: '#f36100'}}>
+            <i className="fas fa-map-marker-alt me-2"></i>
+            Visit Our Academy
+          </h5>
+          <div className="small">
+            <div className="mb-1">162/2/1 Colombo - Batticaloa Hwy</div>
+            <div className="mb-1">Avissawella Code 10700</div>
+            <div className="mb-1">
+              <i className="fas fa-phone me-2"></i>
+              (+94) 77 109 5334
+            </div>
+            <div>
+              <i className="fas fa-envelope me-2"></i>
+              EliteSportsAcademy@gmail.com
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-dark text-white py-5">
         <div className="container">
