@@ -61,21 +61,27 @@ export default function Home() {
   const fetchInstructors = async () => {
     try {
       const response = await fetch('/api/instructors')
-      const data = await response.json()
-      setInstructors(data.slice(0, 3)) // Show only top 3 instructors
+      if (response.ok) {
+        const data = await response.json()
+        setInstructors(data.slice(0, 3)) // Show only top 3 instructors
+      }
     } catch (error) {
       console.error('Error fetching instructors:', error)
+      setInstructors([]) // Set empty array on error
     }
   }
 
   const fetchTrendingVideos = async () => {
     try {
       const response = await fetch('/api/posts')
-      const data = await response.json()
-      const trending = data.filter(post => post.type === 'trending' && post.isActive).slice(0, 3)
-      setTrendingVideos(trending)
+      if (response.ok) {
+        const data = await response.json()
+        const trending = data.filter(post => post.type === 'trending' && post.isActive).slice(0, 3)
+        setTrendingVideos(trending)
+      }
     } catch (error) {
       console.error('Error fetching trending videos:', error)
+      setTrendingVideos([]) // Set empty array on error
     }
   }
 
@@ -86,19 +92,20 @@ export default function Home() {
         fetch('/api/instructors'),
         fetch('/api/classes')
       ])
-      const [members, instructors, classes] = await Promise.all([
-        membersRes.json(),
-        instructorsRes.json(),
-        classesRes.json()
-      ])
+      
+      const members = membersRes.ok ? await membersRes.json() : []
+      const instructors = instructorsRes.ok ? await instructorsRes.json() : []
+      const classes = classesRes.ok ? await classesRes.json() : []
+      
       setStats({
-        members: members.length,
-        instructors: instructors.length,
-        classes: classes.length,
+        members: members.length || 0,
+        instructors: instructors.length || 0,
+        classes: classes.length || 0,
         experience: 5
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
+      setStats({ members: 0, instructors: 0, classes: 0, experience: 5 })
     }
   }
 
@@ -145,7 +152,7 @@ export default function Home() {
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Poppins', sans-serif; line-height: 1.6; color: #333; }
           .btn-primary-custom { 
-            background: linear-gradient(45deg, #f36100, #ff8c42); 
+            background: #f36100; 
             border: none; 
             padding: 15px 30px; 
             font-weight: 600; 
@@ -154,14 +161,16 @@ export default function Home() {
             color: white;
             cursor: pointer;
             transition: all 0.3s;
+            border-radius: 5px;
           }
           .btn-primary-custom:hover { 
-            background: linear-gradient(45deg, #e55100, #f36100); 
+            background: #e55100; 
             transform: translateY(-2px); 
           }
           .card-hover { transition: all 0.3s ease; }
-          .card-hover:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+          .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
           .stats-counter { font-size: 3rem; font-weight: 800; color: #f36100; }
+          .hero-gradient { background: rgba(0,0,0,0.4); }
         `}</style>
       </Head>
 
