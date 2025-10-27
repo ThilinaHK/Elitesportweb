@@ -9,13 +9,21 @@ export default async function handler(req, res) {
       res.json(instructors || [])
     } catch (error) {
       console.error('Instructors API error:', error)
-      // Return mock data when DB is unavailable
-      const mockInstructors = [
-        { _id: '1', name: 'John Doe', specialization: ['crossfit'], experience: 5, email: 'john@elite.com', phone: '+94771234567' },
-        { _id: '2', name: 'Jane Smith', specialization: ['karate'], experience: 8, email: 'jane@elite.com', phone: '+94771234568' },
-        { _id: '3', name: 'Mike Johnson', specialization: ['zumba'], experience: 3, email: 'mike@elite.com', phone: '+94771234569' }
+      // Create default instructors if database is empty
+      const defaultInstructors = [
+        { name: 'John Doe', specialization: ['crossfit'], experience: 5, email: 'john@elite.com', phone: '+94771234567', position: 'instructor', salary: 50000, qualifications: ['CrossFit Level 1'], bio: 'Experienced CrossFit trainer' },
+        { name: 'Jane Smith', specialization: ['karate'], experience: 8, email: 'jane@elite.com', phone: '+94771234568', position: 'instructor', salary: 55000, qualifications: ['Black Belt 3rd Dan'], bio: 'Traditional karate master' },
+        { name: 'Mike Johnson', specialization: ['zumba'], experience: 3, email: 'mike@elite.com', phone: '+94771234569', position: 'instructor', salary: 45000, qualifications: ['Zumba Certified'], bio: 'High-energy dance instructor' }
       ]
-      res.json(mockInstructors)
+      
+      try {
+        await dbConnect()
+        const createdInstructors = await Instructor.insertMany(defaultInstructors)
+        res.json(createdInstructors)
+      } catch (dbError) {
+        console.error('Failed to create default instructors:', dbError)
+        res.json(defaultInstructors.map((inst, index) => ({ ...inst, _id: (index + 1).toString() })))
+      }
     }
   } else if (req.method === 'POST') {
     try {

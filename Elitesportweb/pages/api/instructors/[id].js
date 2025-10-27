@@ -11,9 +11,23 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Database connection failed' })
   }
 
-  if (req.method === 'DELETE') {
+  if (req.method === 'GET') {
     try {
-      await Instructor.findByIdAndDelete(id)
+      const instructor = await Instructor.findById(id)
+      if (!instructor) {
+        return res.status(404).json({ error: 'Instructor not found' })
+      }
+      res.status(200).json(instructor)
+    } catch (error) {
+      console.error('Get error:', error)
+      res.status(400).json({ error: error.message })
+    }
+  } else if (req.method === 'DELETE') {
+    try {
+      const instructor = await Instructor.findByIdAndDelete(id)
+      if (!instructor) {
+        return res.status(404).json({ error: 'Instructor not found' })
+      }
       res.status(200).json({ message: 'Instructor deleted successfully' })
     } catch (error) {
       console.error('Delete error:', error)
