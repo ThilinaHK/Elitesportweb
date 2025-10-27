@@ -2,13 +2,18 @@ import dbConnect from '../../../lib/mongodb'
 import Post from '../../../models/Post'
 
 export default async function handler(req, res) {
-  try {
-    await dbConnect()
-
-    if (req.method === 'GET') {
+  if (req.method === 'GET') {
+    try {
+      await dbConnect()
       const posts = await Post.find({}).sort({ createdAt: -1 })
-      res.json(posts)
-    } else if (req.method === 'POST') {
+      res.json(posts || [])
+    } catch (error) {
+      console.error('Posts API error:', error)
+      res.json([])
+    }
+  } else if (req.method === 'POST') {
+    try {
+      await dbConnect()
       let postData = { ...req.body }
       
       // Handle video posts
@@ -29,11 +34,11 @@ export default async function handler(req, res) {
       
       const post = await Post.create(postData)
       res.status(201).json(post)
-    } else {
-      res.status(405).json({ message: 'Method not allowed' })
+    } catch (error) {
+      console.error('API Error:', error)
+      res.status(500).json({ error: error.message })
     }
-  } catch (error) {
-    console.error('API Error:', error)
-    res.status(500).json({ error: error.message })
+  } else {
+    res.status(405).json({ message: 'Method not allowed' })
   }
 }
