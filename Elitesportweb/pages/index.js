@@ -23,9 +23,10 @@ export default function Home() {
             </div>
             <nav className="d-flex align-items-center gap-4">
               <a href="/" className="text-decoration-none fw-semibold" style={{color: '#f36100'}}>Home</a>
-              <a href="/classes" className="text-decoration-none text-dark">Classes</a>
-              <a href="/login" className="text-decoration-none text-dark">Login</a>
-              <a href="/admin" className="text-decoration-none text-dark">Admin</a>
+              <a href="/posts" className="text-decoration-none text-dark">Videos</a>
+              <a href="/login" className="text-decoration-none text-dark">Member Login</a>
+              <a href="/instructor-login" className="text-decoration-none text-dark">Instructor</a>
+              <a href="/admin-login" className="text-decoration-none text-dark">Admin</a>
               <div className="text-primary fw-semibold">
                 <i className="fas fa-phone me-2"></i>
                 (+94) 77 109 5334
@@ -397,9 +398,10 @@ export default function Home() {
               <h5 className="fw-semibold mb-3" style={{color: '#f36100'}}>Quick Links</h5>
               <ul className="list-unstyled">
                 <li className="mb-2"><a href="/" className="text-muted text-decoration-none small">Home</a></li>
-                <li className="mb-2"><a href="/classes" className="text-muted text-decoration-none small">Classes</a></li>
+                <li className="mb-2"><a href="/posts" className="text-muted text-decoration-none small">Videos</a></li>
                 <li className="mb-2"><a href="/login" className="text-muted text-decoration-none small">Member Login</a></li>
-                <li className="mb-2"><a href="/admin" className="text-muted text-decoration-none small">Admin Panel</a></li>
+                <li className="mb-2"><a href="/instructor-login" className="text-muted text-decoration-none small">Instructor</a></li>
+                <li className="mb-2"><a href="/admin-login" className="text-muted text-decoration-none small">Admin</a></li>
               </ul>
             </div>
           </div>

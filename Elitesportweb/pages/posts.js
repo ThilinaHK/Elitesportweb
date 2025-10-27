@@ -58,7 +58,6 @@ export default function Posts() {
             </div>
             <nav style={{display: 'flex', alignItems: 'center', gap: '30px'}}>
               <a href="/" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px'}}>Home</a>
-              <a href="/classes" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px'}}>Classes</a>
               <a href="/posts" style={{color: '#f36100', textDecoration: 'none', fontWeight: '600', fontSize: '16px'}}>Videos</a>
               <a href="/login" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px'}}>Member Login</a>
               <a href="/instructor-login" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px'}}>Instructor</a>
