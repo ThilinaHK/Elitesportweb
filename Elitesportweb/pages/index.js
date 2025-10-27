@@ -137,6 +137,133 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Trending Videos Section */}
+      <section className="py-5">
+        <div className="container">
+          <div className="text-center mb-5">
+            <h2 className="fw-bold mb-3">🔥 Trending Videos</h2>
+            <p className="text-muted">Watch our most popular training videos</p>
+          </div>
+          <div className="row g-4">
+            <div className="col-lg-4 col-md-6">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="ratio ratio-16x9">
+                  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameBorder="0" allowFullScreen></iframe>
+                </div>
+                <div className="card-body">
+                  <div className="mb-2">
+                    <span className="badge text-white me-2" style={{backgroundColor: '#f36100'}}>CROSSFIT</span>
+                    <span className="badge bg-warning text-dark">🔥 TRENDING</span>
+                  </div>
+                  <h5 className="card-title">CrossFit Workout Basics</h5>
+                  <p className="card-text text-muted small">Learn the fundamental movements of CrossFit training...</p>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-4 col-md-6">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="ratio ratio-16x9">
+                  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameBorder="0" allowFullScreen></iframe>
+                </div>
+                <div className="card-body">
+                  <div className="mb-2">
+                    <span className="badge text-white me-2" style={{backgroundColor: '#2196f3'}}>KARATE</span>
+                    <span className="badge bg-warning text-dark">🔥 TRENDING</span>
+                  </div>
+                  <h5 className="card-title">Karate Kata Techniques</h5>
+                  <p className="card-text text-muted small">Master traditional karate forms and techniques...</p>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-4 col-md-6">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="ratio ratio-16x9">
+                  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameBorder="0" allowFullScreen></iframe>
+                </div>
+                <div className="card-body">
+                  <div className="mb-2">
+                    <span className="badge text-white me-2" style={{backgroundColor: '#9c27b0'}}>ZUMBA</span>
+                    <span className="badge bg-warning text-dark">🔥 TRENDING</span>
+                  </div>
+                  <h5 className="card-title">Zumba Dance Moves</h5>
+                  <p className="card-text text-muted small">High-energy dance workout for all fitness levels...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center mt-4">
+            <a href="/posts" className="btn text-white fw-semibold px-4" style={{backgroundColor: '#f36100', border: 'none'}}>
+              <i className="fas fa-play me-2"></i>View All Videos
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Posts Panel */}
+      <section className="py-5 bg-light">
+        <div className="container">
+          <div className="text-center mb-5">
+            <h2 className="fw-bold mb-3">Latest Posts & Articles</h2>
+            <p className="text-muted">Stay updated with fitness tips and academy news</p>
+          </div>
+          <div className="row g-4">
+            <div className="col-lg-4 col-md-6">
+              <div className="card border-0 shadow-sm h-100">
+                <img src="/img/blog/blog-1.jpg" className="card-img-top" alt="Fitness Tips" style={{height: '200px', objectFit: 'cover'}} />
+                <div className="card-body">
+                  <div className="mb-2">
+                    <span className="badge bg-success">FITNESS TIPS</span>
+                  </div>
+                  <h5 className="card-title">10 Essential CrossFit Tips for Beginners</h5>
+                  <p className="card-text text-muted small">Starting your CrossFit journey? Here are the essential tips every beginner should know...</p>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <small className="text-muted">2 days ago</small>
+                    <a href="/articles" className="btn btn-sm btn-outline-primary">Read More</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-4 col-md-6">
+              <div className="card border-0 shadow-sm h-100">
+                <img src="/img/blog/blog-2.jpg" className="card-img-top" alt="Nutrition" style={{height: '200px', objectFit: 'cover'}} />
+                <div className="card-body">
+                  <div className="mb-2">
+                    <span className="badge bg-info text-white">NUTRITION</span>
+                  </div>
+                  <h5 className="card-title">Nutrition Guide for Athletes</h5>
+                  <p className="card-text text-muted small">Fuel your workouts with proper nutrition. Learn what to eat before and after training...</p>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <small className="text-muted">5 days ago</small>
+                    <a href="/articles" className="btn btn-sm btn-outline-primary">Read More</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-4 col-md-6">
+              <div className="card border-0 shadow-sm h-100">
+                <img src="/img/blog/blog-3.jpg" className="card-img-top" alt="Academy News" style={{height: '200px', objectFit: 'cover'}} />
+                <div className="card-body">
+                  <div className="mb-2">
+                    <span className="badge bg-warning text-dark">ACADEMY NEWS</span>
+                  </div>
+                  <h5 className="card-title">New Class Schedule Updates</h5>
+                  <p className="card-text text-muted small">We've updated our class schedules to better serve our members. Check out the new timings...</p>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <small className="text-muted">1 week ago</small>
+                    <a href="/articles" className="btn btn-sm btn-outline-primary">Read More</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center mt-4">
+            <a href="/articles" className="btn text-white fw-semibold px-4" style={{backgroundColor: '#f36100', border: 'none'}}>
+              <i className="fas fa-newspaper me-2"></i>View All Articles
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-5 bg-dark text-white text-center">
         <div className="container">
