@@ -14,10 +14,20 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     try {
       await dbConnect()
-      const member = await Member.create(req.body)
+      
+      // Convert string numbers to actual numbers
+      const memberData = {
+        ...req.body,
+        weight: req.body.weight ? Number(req.body.weight) : undefined,
+        height: req.body.height ? Number(req.body.height) : undefined
+      }
+      
+      console.log('Creating member with data:', memberData)
+      const member = await Member.create(memberData)
+      console.log('Member created successfully:', member._id)
       res.status(201).json(member)
     } catch (error) {
-      console.error('API Error:', error)
+      console.error('Member creation error:', error)
       res.status(500).json({ error: error.message })
     }
   } else {
