@@ -264,6 +264,86 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Member Registration Section */}
+      <section className="py-5" style={{background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'}}>
+        <div className="container">
+          <div className="row align-items-center">
+            <div className="col-lg-6 mb-4 mb-lg-0">
+              <div className="position-relative">
+                <img src="/img/booking.jpg" alt="Join Elite Sports Academy" className="img-fluid rounded shadow" style={{height: '400px', width: '100%', objectFit: 'cover'}} />
+                <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded" style={{background: 'linear-gradient(45deg, rgba(243,97,0,0.8), rgba(0,0,0,0.3))'}}>
+                  <div className="text-center text-white">
+                    <h2 className="fw-bold mb-3">Start Your Fitness Journey</h2>
+                    <p className="fs-5">Join thousands of satisfied members</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-6">
+              <div className="bg-white p-4 rounded shadow">
+                <h3 className="fw-bold mb-4 text-dark">Member Registration</h3>
+                <form>
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-semibold">Full Name *</label>
+                      <input type="text" className="form-control" placeholder="Enter your full name" required />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-semibold">Email Address *</label>
+                      <input type="email" className="form-control" placeholder="Enter your email" required />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-semibold">Phone Number *</label>
+                      <input type="tel" className="form-control" placeholder="Enter your phone" required />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-semibold">NIC Number *</label>
+                      <input type="text" className="form-control" placeholder="Enter your NIC" required />
+                    </div>
+                    <div className="col-12 mb-3">
+                      <label className="form-label fw-semibold">Address *</label>
+                      <textarea className="form-control" rows="2" placeholder="Enter your address" required></textarea>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-semibold">Date of Birth *</label>
+                      <input type="date" className="form-control" required />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-semibold">Gender *</label>
+                      <select className="form-select" required>
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-semibold">Weight (kg) *</label>
+                      <input type="number" className="form-control" placeholder="Enter weight" required />
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <label className="form-label fw-semibold">Height (cm) *</label>
+                      <input type="number" className="form-control" placeholder="Enter height" required />
+                    </div>
+                    <div className="col-12 mb-3">
+                      <label className="form-label fw-semibold">Emergency Contact *</label>
+                      <input type="tel" className="form-control" placeholder="Emergency contact number" required />
+                    </div>
+                    <div className="col-12 mb-3">
+                      <label className="form-label fw-semibold">Medical Conditions</label>
+                      <textarea className="form-control" rows="2" placeholder="Any medical conditions (optional)"></textarea>
+                    </div>
+                  </div>
+                  <button type="submit" className="btn w-100 text-white fw-semibold py-2" style={{backgroundColor: '#f36100', border: 'none'}}>
+                    <i className="fas fa-user-plus me-2"></i>
+                    Complete Registration
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-5 bg-dark text-white text-center">
         <div className="container">
