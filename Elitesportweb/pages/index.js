@@ -4,51 +4,206 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Elite Sports Academy</title>
+        <title>Elite Sports Academy - Transform Your Fitness Journey</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
       </Head>
 
-      <div style={{padding: '20px', textAlign: 'center'}}>
-        <h1>Elite Sports Academy</h1>
-        <p>Welcome to our fitness academy</p>
-        
-        <div style={{margin: '40px 0'}}>
-          <h2>Our Programs</h2>
-          <div style={{display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap'}}>
-            <div style={{border: '1px solid #ddd', padding: '20px', borderRadius: '8px'}}>
-              <h3>CrossFit</h3>
-              <p>High-intensity functional fitness</p>
+      {/* Header */}
+      <header className="bg-white shadow-sm fixed-top">
+        <div className="container">
+          <div className="d-flex align-items-center justify-content-between py-3">
+            <div className="d-flex align-items-center">
+              <img src="/img/eliet_logo.jpg" width="50" height="50" alt="Elite Sports Academy" className="rounded-circle me-3" />
+              <div>
+                <h4 className="mb-0 text-dark fw-bold">Elite Sports</h4>
+                <small className="text-muted">Academy</small>
+              </div>
             </div>
-            <div style={{border: '1px solid #ddd', padding: '20px', borderRadius: '8px'}}>
-              <h3>Karate</h3>
-              <p>Traditional martial arts</p>
-            </div>
-            <div style={{border: '1px solid #ddd', padding: '20px', borderRadius: '8px'}}>
-              <h3>Zumba</h3>
-              <p>Dance fitness classes</p>
+            <nav className="d-flex align-items-center gap-4">
+              <a href="/" className="text-decoration-none fw-semibold" style={{color: '#f36100'}}>Home</a>
+              <a href="/classes" className="text-decoration-none text-dark">Classes</a>
+              <a href="/login" className="text-decoration-none text-dark">Login</a>
+              <a href="/admin" className="text-decoration-none text-dark">Admin</a>
+              <div className="text-primary fw-semibold">
+                <i className="fas fa-phone me-2"></i>
+                (+94) 77 109 5334
+              </div>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="position-relative" style={{marginTop: '80px', height: '70vh', background: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(/img/slide-1.jpg)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
+        <div className="container h-100 d-flex align-items-center">
+          <div className="text-white">
+            <h1 className="display-4 fw-bold mb-4">Transform Your Body with Elite Training</h1>
+            <p className="lead mb-4">Professional CrossFit, Karate, and Zumba classes with expert instructors</p>
+            <div className="d-flex gap-3">
+              <a href="/classes" className="btn btn-lg text-white fw-semibold px-4" style={{backgroundColor: '#f36100', border: 'none'}}>
+                View Classes
+              </a>
+              <a href="/login" className="btn btn-outline-light btn-lg px-4">
+                Member Login
+              </a>
             </div>
           </div>
         </div>
+      </section>
 
-        <div style={{margin: '40px 0'}}>
-          <h2>Contact Us</h2>
-          <p>Phone: (+94) 77 109 5334</p>
-          <p>Email: EliteSportsAcademy@gmail.com</p>
-          <p>Address: 162/2/1 Colombo - Batticaloa Hwy, Avissawella</p>
+      {/* Programs Section */}
+      <section className="py-5 bg-light">
+        <div className="container">
+          <div className="text-center mb-5">
+            <h2 className="fw-bold mb-3">Our Premium Programs</h2>
+            <p className="text-muted">Transform your body and mind with our expertly designed fitness programs</p>
+          </div>
+          <div className="row g-4">
+            <div className="col-md-4">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body text-center p-4">
+                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', backgroundColor: '#f36100'}}>
+                    <i className="fas fa-dumbbell text-white fs-3"></i>
+                  </div>
+                  <h4 className="fw-bold mb-3">CrossFit Training</h4>
+                  <p className="text-muted mb-4">High-intensity functional fitness that builds strength, endurance, and mental toughness through varied workouts.</p>
+                  <ul className="list-unstyled text-start">
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Olympic Weightlifting</li>
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Metabolic Conditioning</li>
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Gymnastics Skills</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-4">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body text-center p-4">
+                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', backgroundColor: '#2196f3'}}>
+                    <i className="fas fa-fist-raised text-white fs-3"></i>
+                  </div>
+                  <h4 className="fw-bold mb-3">Karate Classes</h4>
+                  <p className="text-muted mb-4">Traditional martial arts training that develops discipline, self-defense skills, and mental focus.</p>
+                  <ul className="list-unstyled text-start">
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Traditional Kata Forms</li>
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Self-Defense Techniques</li>
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Mental Discipline</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-4">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body text-center p-4">
+                  <div className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '80px', height: '80px', backgroundColor: '#9c27b0'}}>
+                    <i className="fas fa-music text-white fs-3"></i>
+                  </div>
+                  <h4 className="fw-bold mb-3">Zumba Fitness</h4>
+                  <p className="text-muted mb-4">High-energy dance fitness that combines Latin rhythms with easy-to-follow moves for a fun workout.</p>
+                  <ul className="list-unstyled text-start">
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Latin Dance Moves</li>
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Cardio Conditioning</li>
+                    <li className="mb-2"><i className="fas fa-check text-success me-2"></i>Fun Group Atmosphere</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div style={{margin: '40px 0'}}>
-          <a href="/classes" style={{background: '#f36100', color: 'white', padding: '10px 20px', textDecoration: 'none', borderRadius: '5px', margin: '0 10px'}}>
-            View Classes
-          </a>
-          <a href="/login" style={{background: '#333', color: 'white', padding: '10px 20px', textDecoration: 'none', borderRadius: '5px', margin: '0 10px'}}>
-            Member Login
-          </a>
-          <a href="/admin" style={{background: '#666', color: 'white', padding: '10px 20px', textDecoration: 'none', borderRadius: '5px', margin: '0 10px'}}>
-            Admin Panel
-          </a>
+      {/* Stats Section */}
+      <section className="py-5 text-white" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
+        <div className="container">
+          <div className="row text-center">
+            <div className="col-md-3 col-6 mb-4">
+              <div className="display-4 fw-bold">50+</div>
+              <h5 className="fw-semibold mt-2">Happy Members</h5>
+            </div>
+            <div className="col-md-3 col-6 mb-4">
+              <div className="display-4 fw-bold">5+</div>
+              <h5 className="fw-semibold mt-2">Expert Trainers</h5>
+            </div>
+            <div className="col-md-3 col-6 mb-4">
+              <div className="display-4 fw-bold">15+</div>
+              <h5 className="fw-semibold mt-2">Weekly Classes</h5>
+            </div>
+            <div className="col-md-3 col-6 mb-4">
+              <div className="display-4 fw-bold">5</div>
+              <h5 className="fw-semibold mt-2">Years Experience</h5>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-5 bg-dark text-white text-center">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-lg-8">
+              <h2 className="fw-bold mb-3">Ready to Transform Your Life?</h2>
+              <p className="lead mb-4">Join our elite fitness community and start your transformation journey today</p>
+              <div className="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="/classes" className="btn btn-lg text-white fw-semibold px-4" style={{backgroundColor: '#f36100', border: 'none'}}>
+                  <i className="fas fa-rocket me-2"></i>Start Your Journey
+                </a>
+                <a href="/login" className="btn btn-outline-light btn-lg px-4">
+                  <i className="fas fa-user me-2"></i>Member Login
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-dark text-white py-5">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-4 mb-4">
+              <div className="d-flex align-items-center mb-3">
+                <img src="/img/eliet_logo.jpg" width="40" height="40" alt="Elite Sports Academy" className="rounded-circle me-3" />
+                <div>
+                  <h5 className="mb-0 fw-bold">Elite Sports Academy</h5>
+                  <small className="text-muted">Transform Your Limits</small>
+                </div>
+              </div>
+              <p className="text-muted">Your premier destination for CrossFit, Karate, and Zumba training. Join our community and transform your fitness journey.</p>
+            </div>
+            <div className="col-lg-4 mb-4">
+              <h5 className="fw-semibold mb-3" style={{color: '#f36100'}}>Contact Info</h5>
+              <div className="mb-2">
+                <i className="fas fa-map-marker-alt me-2" style={{color: '#f36100'}}></i>
+                <span className="text-muted small">162/2/1 Colombo - Batticaloa Hwy, Avissawella</span>
+              </div>
+              <div className="mb-2">
+                <i className="fas fa-phone me-2" style={{color: '#f36100'}}></i>
+                <span className="text-muted small">(+94) 77 109 5334</span>
+              </div>
+              <div>
+                <i className="fas fa-envelope me-2" style={{color: '#f36100'}}></i>
+                <span className="text-muted small">EliteSportsAcademy@gmail.com</span>
+              </div>
+            </div>
+            <div className="col-lg-4 mb-4">
+              <h5 className="fw-semibold mb-3" style={{color: '#f36100'}}>Quick Links</h5>
+              <ul className="list-unstyled">
+                <li className="mb-2"><a href="/" className="text-muted text-decoration-none small">Home</a></li>
+                <li className="mb-2"><a href="/classes" className="text-muted text-decoration-none small">Classes</a></li>
+                <li className="mb-2"><a href="/login" className="text-muted text-decoration-none small">Member Login</a></li>
+                <li className="mb-2"><a href="/admin" className="text-muted text-decoration-none small">Admin Panel</a></li>
+              </ul>
+            </div>
+          </div>
+          <hr className="my-4" style={{borderColor: '#444'}} />
+          <div className="text-center">
+            <p className="mb-0 text-muted small">
+              Copyright © 2024 Elite Sports Academy. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </>
   )
 }
