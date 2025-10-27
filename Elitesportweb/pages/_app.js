@@ -4,8 +4,8 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <link href="https://fonts.googleapis.com/css?family=PT+Sans:400,700&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css?family=Oswald:400,500,600,700&display=swap" rel="stylesheet" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/img/eliet_logo.jpg" />
       </Head>
       <Component {...pageProps} />
     </>

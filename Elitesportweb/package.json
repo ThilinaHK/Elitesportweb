@@ -10,11 +10,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "export": "next export",
-    "prod": "NODE_ENV=production next build && next start",
-    "seed": "node scripts/seedClasses.js",
-    "seed:instructors": "node scripts/seedInstructors.js",
-    "seed:all": "node scripts/seedInstructors.js && node scripts/seedClasses.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "next": "13.4.19",

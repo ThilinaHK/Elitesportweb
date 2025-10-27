@@ -1,26 +1,38 @@
-# Elite Sports Academy - Next.js
+# Elite Sports Academy
 
-## Setup
+A Next.js web application for Elite Sports Academy offering CrossFit, Karate, and Zumba classes.
+
+## Getting Started
 
 1. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Start MongoDB locally or update MONGODB_URI in .env.local
+2. Set up environment variables:
+Create `.env.local` file with:
+```
+MONGODB_URI=your_mongodb_connection_string
+```
 
-3. Run development server:
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Visit:
-- Website: http://localhost:3000
-- Admin Panel: http://localhost:3000/admin
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Features
 
-- Dynamic member registration
-- MongoDB integration
-- Admin panel for member management
-- Responsive design from original template
+- Member registration and management
+- Class scheduling and booking
+- Instructor profiles
+- Admin dashboard
+- Responsive design
+
+## Tech Stack
+
+- Next.js 13
+- React 18
+- MongoDB with Mongoose
+- Bootstrap CSS
