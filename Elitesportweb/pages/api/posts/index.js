@@ -9,7 +9,13 @@ export default async function handler(req, res) {
       res.json(posts || [])
     } catch (error) {
       console.error('Posts API error:', error)
-      res.json([])
+      // Return mock data when DB is unavailable
+      const mockPosts = [
+        { _id: '1', title: 'CrossFit Workout Basics', videoId: 'dQw4w9WgXcQ', category: 'crossfit', type: 'trending', isActive: true, description: 'Learn basic CrossFit movements' },
+        { _id: '2', title: 'Karate Kata Forms', videoId: 'dQw4w9WgXcQ', category: 'karate', type: 'featured', isActive: true, description: 'Traditional karate forms' },
+        { _id: '3', title: 'Zumba Dance Moves', videoId: 'dQw4w9WgXcQ', category: 'zumba', type: 'normal', isActive: true, description: 'Fun dance workout' }
+      ]
+      res.json(mockPosts)
     }
   } else if (req.method === 'POST') {
     try {

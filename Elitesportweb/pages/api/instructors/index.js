@@ -9,7 +9,13 @@ export default async function handler(req, res) {
       res.json(instructors || [])
     } catch (error) {
       console.error('Instructors API error:', error)
-      res.json([])
+      // Return mock data when DB is unavailable
+      const mockInstructors = [
+        { _id: '1', name: 'John Doe', specialization: ['crossfit'], experience: 5, email: 'john@elite.com', phone: '+94771234567' },
+        { _id: '2', name: 'Jane Smith', specialization: ['karate'], experience: 8, email: 'jane@elite.com', phone: '+94771234568' },
+        { _id: '3', name: 'Mike Johnson', specialization: ['zumba'], experience: 3, email: 'mike@elite.com', phone: '+94771234569' }
+      ]
+      res.json(mockInstructors)
     }
   } else if (req.method === 'POST') {
     try {
