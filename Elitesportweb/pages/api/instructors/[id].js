@@ -3,20 +3,33 @@ import Instructor from '../../../models/Instructor'
 
 export default async function handler(req, res) {
   const { id } = req.query
-  await dbConnect()
+  
+  try {
+    await dbConnect()
+  } catch (error) {
+    console.error('Database connection failed:', error)
+    return res.status(500).json({ error: 'Database connection failed' })
+  }
 
   if (req.method === 'DELETE') {
     try {
       await Instructor.findByIdAndDelete(id)
       res.status(200).json({ message: 'Instructor deleted successfully' })
     } catch (error) {
+      console.error('Delete error:', error)
       res.status(400).json({ error: error.message })
     }
   } else if (req.method === 'PUT') {
     try {
+      console.log('Updating instructor:', id, req.body)
       const instructor = await Instructor.findByIdAndUpdate(id, req.body, { new: true })
+      if (!instructor) {
+        return res.status(404).json({ error: 'Instructor not found' })
+      }
+      console.log('Updated instructor:', instructor)
       res.status(200).json(instructor)
     } catch (error) {
+      console.error('Update error:', error)
       res.status(400).json({ error: error.message })
     }
   } else {
