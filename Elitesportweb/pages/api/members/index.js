@@ -1,5 +1,6 @@
 import dbConnect from '../../../lib/mongodb'
 import Member from '../../../models/Member'
+import { fallbackMembers } from '../../../lib/fallbackData'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -9,7 +10,7 @@ export default async function handler(req, res) {
       res.json(members || [])
     } catch (error) {
       console.error('Members API error:', error)
-      res.json([])
+      res.json(fallbackMembers)
     }
   } else if (req.method === 'POST') {
     try {
