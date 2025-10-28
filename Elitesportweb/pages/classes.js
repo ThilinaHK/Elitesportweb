@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import { useState, useEffect } from 'react'
+import Toast from '../components/Toast'
 
 export default function Classes() {
   const [classes, setClasses] = useState([])
@@ -13,6 +14,7 @@ export default function Classes() {
     memberEmail: '',
     memberPhone: ''
   })
+  const [toast, setToast] = useState({ show: false, message: '', type: '' })
 
   useEffect(() => {
     fetchClasses()
@@ -65,12 +67,14 @@ export default function Classes() {
         })
       })
       if (response.ok) {
-        alert('Booking request submitted! Admin will confirm your booking.')
+        setToast({ show: true, message: 'Booking request submitted! Admin will confirm your booking.', type: 'success' })
         setShowBookingModal(false)
         setBookingForm({ memberName: '', memberEmail: '', memberPhone: '' })
+      } else {
+        setToast({ show: true, message: 'Booking failed. Please try again.', type: 'error' })
       }
     } catch (error) {
-      alert('Booking failed. Please try again.')
+      setToast({ show: true, message: 'Booking failed. Please try again.', type: 'error' })
     }
   }
 
@@ -488,6 +492,13 @@ export default function Classes() {
           </div>
         </div>
       )}
+
+      <Toast 
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={() => setToast({ show: false, message: '', type: '' })}
+      />
     </>
   )
 }

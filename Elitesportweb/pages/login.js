@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Toast from '../components/Toast';
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', phone: '' });
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -19,13 +21,14 @@ export default function Login() {
       
       const data = await res.json();
       if (data.success) {
+        setToast({ show: true, message: 'Login successful! Redirecting...', type: 'success' });
         localStorage.setItem('memberId', data.member._id);
-        router.push('/member-dashboard');
+        setTimeout(() => router.push('/member-dashboard'), 1000);
       } else {
-        alert(data.message);
+        setToast({ show: true, message: data.message || 'Invalid credentials', type: 'error' });
       }
     } catch (error) {
-      alert('Login failed');
+      setToast({ show: true, message: 'Login failed. Please try again.', type: 'error' });
     }
     setLoading(false);
   };
@@ -92,6 +95,13 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      <Toast 
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={() => setToast({ show: false, message: '', type: '' })}
+      />
     </>
   );
 }
