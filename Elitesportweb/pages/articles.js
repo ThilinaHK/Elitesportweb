@@ -18,6 +18,37 @@ export default function Articles() {
       setArticles(articlePosts)
     } catch (error) {
       console.error('Error fetching articles:', error)
+      // Mock articles data
+      const mockArticles = [
+        {
+          _id: '1',
+          title: '10 Essential CrossFit Tips for Beginners',
+          excerpt: 'Starting your CrossFit journey? Here are the essential tips every beginner should know to get started safely and effectively.',
+          category: 'fitness',
+          featuredImage: '/img/blog/blog-1.jpg',
+          tags: ['crossfit', 'beginners', 'tips'],
+          createdAt: new Date('2024-01-15')
+        },
+        {
+          _id: '2',
+          title: 'Nutrition Guide for Athletes',
+          excerpt: 'Fuel your workouts with proper nutrition. Learn what to eat before and after training to maximize your performance.',
+          category: 'nutrition',
+          featuredImage: '/img/blog/blog-2.jpg',
+          tags: ['nutrition', 'athletes', 'diet'],
+          createdAt: new Date('2024-01-10')
+        },
+        {
+          _id: '3',
+          title: 'New Class Schedule Updates',
+          excerpt: 'We have updated our class schedules to better serve our members. Check out the new timings and additional classes.',
+          category: 'academy',
+          featuredImage: '/img/blog/blog-3.jpg',
+          tags: ['schedule', 'classes', 'updates'],
+          createdAt: new Date('2024-01-05')
+        }
+      ]
+      setArticles(mockArticles)
     } finally {
       setLoading(false)
     }
