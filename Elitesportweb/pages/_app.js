@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Toast from '../components/Toast'
 
 export default function App({ Component, pageProps }) {
   return (
@@ -8,6 +9,7 @@ export default function App({ Component, pageProps }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Component {...pageProps} />
+      <Toast />
     </>
   )
 }
