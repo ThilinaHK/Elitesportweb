@@ -214,6 +214,7 @@ export default function Home() {
                 <div className="card-body">
                   <div className="mb-2">
                     <span className="badge bg-success">FITNESS TIPS</span>
+                    <span className="badge bg-warning text-dark ms-1">🔥 TRENDING</span>
                   </div>
                   <h5 className="card-title">10 Essential CrossFit Tips for Beginners</h5>
                   <p className="card-text text-muted small">Starting your CrossFit journey? Here are the essential tips every beginner should know...</p>
@@ -246,6 +247,7 @@ export default function Home() {
                 <div className="card-body">
                   <div className="mb-2">
                     <span className="badge bg-warning text-dark">ACADEMY NEWS</span>
+                    <span className="badge bg-danger text-white ms-1">🔥 TRENDING</span>
                   </div>
                   <h5 className="card-title">New Class Schedule Updates</h5>
                   <p className="card-text text-muted small">We've updated our class schedules to better serve our members. Check out the new timings...</p>
