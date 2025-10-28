@@ -119,7 +119,10 @@ export default function Posts() {
 
           {loading ? (
             <div style={{textAlign: 'center', padding: '60px 0'}}>
-              <p>Loading videos...</p>
+              <div className="spinner-border text-primary" role="status" style={{width: '3rem', height: '3rem', color: '#f36100 !important'}}>
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-3" style={{color: '#666'}}>Loading videos...</p>
             </div>
           ) : (
             <div className="row">

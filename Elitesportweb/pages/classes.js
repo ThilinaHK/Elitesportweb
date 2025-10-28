@@ -229,10 +229,10 @@ export default function Classes() {
 
           {loading ? (
             <div style={{textAlign: 'center', padding: '60px 0'}}>
-              <div style={{fontSize: '2rem', color: '#f36100', marginBottom: '20px'}}>
-                <i className="fas fa-spinner fa-spin"></i>
+              <div className="spinner-border" role="status" style={{width: '3rem', height: '3rem', color: '#f36100'}}>
+                <span className="visually-hidden">Loading...</span>
               </div>
-              <p style={{color: '#666'}}>Loading classes...</p>
+              <p className="mt-3" style={{color: '#666', fontSize: '1.1rem'}}>Loading classes...</p>
             </div>
           ) : (
             <div className="row">
