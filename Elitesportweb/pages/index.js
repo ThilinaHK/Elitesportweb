@@ -1,6 +1,37 @@
 import Head from 'next/head'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
+  const [currentQuote, setCurrentQuote] = useState({
+    text: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    author: "Winston Churchill",
+    title: "British Prime Minister"
+  })
+  const [quotes, setQuotes] = useState([])
+
+  useEffect(() => {
+    fetchQuotes()
+  }, [])
+
+  const fetchQuotes = async () => {
+    try {
+      const response = await fetch('/api/quotes')
+      const data = await response.json()
+      if (data.length > 0) {
+        setQuotes(data)
+        setCurrentQuote(data[Math.floor(Math.random() * data.length)])
+      }
+    } catch (error) {
+      console.error('Error fetching quotes:', error)
+    }
+  }
+
+  const getRandomQuote = () => {
+    if (quotes.length > 0) {
+      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
+      setCurrentQuote(randomQuote)
+    }
+  }
   return (
     <>
       <Head>
@@ -343,6 +374,43 @@ export default function Home() {
                 </form>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Inspirational Quotes Section */}
+      <section className="py-5" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white'}}>
+        <div className="container">
+          <div className="text-center mb-5">
+            <h2 className="fw-bold mb-3">💪 Daily Motivation</h2>
+            <p className="opacity-75">Get inspired with quotes from fitness experts and champions</p>
+          </div>
+          <div className="row justify-content-center">
+            <div className="col-lg-8">
+              <div className="bg-white bg-opacity-10 p-4 rounded shadow" style={{backdropFilter: 'blur(10px)'}}>
+                <div className="text-center">
+                  <i className="fas fa-quote-left mb-3" style={{fontSize: '2rem', opacity: '0.7'}}></i>
+                  <blockquote className="fs-4 fw-light mb-4" style={{lineHeight: '1.6'}}>
+                    "{currentQuote.text}"
+                  </blockquote>
+                  <div className="d-flex align-items-center justify-content-center">
+                    <div className="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" style={{width: '50px', height: '50px'}}>
+                      <i className="fas fa-user text-white"></i>
+                    </div>
+                    <div className="text-start">
+                      <h6 className="mb-0 fw-bold">{currentQuote.author}</h6>
+                      <small className="opacity-75">{currentQuote.title || 'Motivational Speaker'}</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center mt-4">
+            <button className="btn btn-light btn-sm px-4" onClick={getRandomQuote}>
+              <i className="fas fa-sync-alt me-2"></i>
+              New Quote
+            </button>
           </div>
         </div>
       </section>
