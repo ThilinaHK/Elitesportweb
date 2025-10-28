@@ -11,7 +11,13 @@ const InstructorSchema = new mongoose.Schema({
   salary: { type: Number, required: true, default: 50000 },
   bio: { type: String },
   image: { type: String },
-  status: { type: String, default: 'active', enum: ['active', 'inactive'] }
+  status: { type: String, default: 'active', enum: ['active', 'inactive'] },
+  privileges: {
+    canManageClasses: { type: Boolean, default: false },
+    canViewReports: { type: Boolean, default: false },
+    canManageMembers: { type: Boolean, default: false },
+    canViewPayments: { type: Boolean, default: false }
+  }
 }, { timestamps: true })
 
 export default mongoose.models.Instructor || mongoose.model('Instructor', InstructorSchema)

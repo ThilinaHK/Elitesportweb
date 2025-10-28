@@ -98,36 +98,35 @@ export default function Classes() {
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
         <style jsx global>{`
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Poppins', sans-serif; line-height: 1.6; color: #333; }
-          .btn-primary-custom { background: linear-gradient(45deg, #f36100, #ff8c42); border: none; padding: 12px 25px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-radius: 25px; color: white; cursor: pointer; transition: all 0.3s; }
-          .btn-primary-custom:hover { background: linear-gradient(45deg, #e55100, #f36100); transform: translateY(-2px); }
-          .card-hover { transition: all 0.3s ease; }
-          .card-hover:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+          body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 400; line-height: 1.6; color: #2c3e50; }
+          .btn-primary-custom { background: linear-gradient(45deg, #f36100, #ff8c42); border: none; padding: 12px 25px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-radius: 25px; color: white; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 8px 25px rgba(243,97,0,0.3); }
+          .btn-primary-custom:hover { background: linear-gradient(45deg, #e55100, #f36100); transform: translateY(-3px); box-shadow: 0 15px 35px rgba(243,97,0,0.4); }
+          .card-hover { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+          .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
+          .card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+          .card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
         `}</style>
       </Head>
 
       {/* Header */}
-      <header style={{background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, boxShadow: '0 2px 20px rgba(0,0,0,0.1)'}}>
+      <header className="fixed-top" style={{background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', boxShadow: '0 2px 30px rgba(0,0,0,0.08)', borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
         <div className="container">
-          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 0'}}>
-            <div style={{display: 'flex', alignItems: 'center'}}>
-              <img src="/img/eliet_logo.jpg" width="60" height="60" alt="Elite Sports Academy" style={{borderRadius: '50%', marginRight: '15px'}} />
+          <div className="d-flex align-items-center justify-content-between py-3">
+            <div className="d-flex align-items-center">
+              <img src="/img/eliet_logo.jpg" width="55" height="55" alt="Elite Sports Academy" className="rounded-circle me-3" style={{boxShadow: '0 4px 15px rgba(243,97,0,0.2)'}} />
               <div>
-                <h3 style={{margin: 0, color: '#333', fontSize: '24px', fontWeight: '700'}}>Elite Sports</h3>
-                <p style={{margin: 0, color: '#666', fontSize: '14px'}}>Academy</p>
+                <h4 className="mb-0 fw-bold" style={{color: '#2c3e50', fontSize: '1.4rem'}}>Elite Sports</h4>
+                <small className="text-muted fw-medium">Academy</small>
               </div>
             </div>
-            <nav style={{display: 'flex', alignItems: 'center', gap: '30px'}}>
-              <a href="/" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px', transition: 'color 0.3s'}}>Home</a>
-              <a href="/posts" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px', transition: 'color 0.3s'}}>Videos</a>
-              <a href="/login" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px', transition: 'color 0.3s'}}>Member Login</a>
-              <a href="/instructor-login" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px', transition: 'color 0.3s'}}>Instructor</a>
-              <a href="/admin-login" style={{color: '#333', textDecoration: 'none', fontWeight: '500', fontSize: '16px', transition: 'color 0.3s'}}>Admin</a>
-              <div style={{display: 'flex', alignItems: 'center', color: '#f36100', fontWeight: '600'}}>
-                <i className="fas fa-phone" style={{marginRight: '8px'}}></i>
-                <span>(+94) 77 109 5334</span>
-              </div>
+            <nav className="d-flex align-items-center gap-4">
+              <a href="/" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Home</a>
+              <a href="/classes" className="text-decoration-none fw-semibold px-3 py-2 rounded-pill" style={{color: '#f36100', background: 'rgba(243,97,0,0.1)', transition: 'all 0.3s'}}>Classes</a>
+              <a href="/posts" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Videos</a>
+              <a href="/articles" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Articles</a>
+              <a href="/login" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Member Login</a>
             </nav>
           </div>
         </div>

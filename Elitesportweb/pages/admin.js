@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import Toast, { showToast } from '../components/Toast'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function Admin() {
   const router = useRouter()
@@ -115,6 +117,50 @@ export default function Admin() {
     assignedClasses: []
   })
   const [editingMember, setEditingMember] = useState(null)
+  const [rules, setRules] = useState({
+    doorAccess: {
+      requirePayment: true,
+      gracePeriodDays: 3,
+      allowPartialPayment: false,
+      qrExpiryHours: 1,
+      maxDailyEntries: 5
+    },
+    paymentReminders: {
+      firstReminderDays: 7,
+      secondReminderDays: 3,
+      finalReminderDays: 1,
+      suspensionAfterDays: 5,
+      autoSmsEnabled: true,
+      autoEmailEnabled: true
+    }
+  })
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [contactInfo, setContactInfo] = useState({
+    title: 'Transform Your Limits',
+    description: 'Your premier destination for CrossFit, Karate, and Zumba training. Join our community and transform your fitness journey.',
+    address: '162/2/1 Colombo - Batticaloa Hwy, Avissawella',
+    phone: '(+94) 77 109 5334',
+    email: 'EliteSportsAcademy@gmail.com',
+    website: 'www.elitesportsacademy.lk',
+    socialMedia: {
+      facebook: 'https://facebook.com/elitesportsacademy',
+      instagram: 'https://instagram.com/elitesportsacademy',
+      youtube: 'https://youtube.com/@elitesportsacademy'
+    },
+    businessHours: {
+      weekdays: '6:00 AM - 10:00 PM',
+      weekends: '7:00 AM - 9:00 PM'
+    },
+    mapLocation: {
+      latitude: 6.9537892,
+      longitude: 80.2015719,
+      embedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.8977!2d80.2015719!3d6.9537892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae3a97a9266e939%3A0x447841913a8b1b0e!2sElite%20Sports%20Academy!5e0!3m2!1sen!2slk!4v1234567890'
+    }
+  })
   const [classForm, setClassForm] = useState({
     name: '',
     category: 'crossfit',
@@ -163,6 +209,8 @@ export default function Admin() {
     fetchNotifications()
     fetchDiets()
     fetchQuotes()
+    fetchRules()
+    fetchContactInfo()
   }, [])
 
   useEffect(() => {
@@ -241,7 +289,7 @@ export default function Admin() {
         body: JSON.stringify({ action: 'generate' })
       })
       const data = await response.json()
-      alert(`Generated ${data.count} payment reminders`)
+      showToast(`Generated ${data.count} payment reminders`, 'success')
       fetchReminders()
     } catch (error) {
       console.error('Error generating reminders:', error)
@@ -266,7 +314,7 @@ export default function Admin() {
         body: JSON.stringify({ reminderId, method })
       })
       const data = await response.json()
-      alert(data.message)
+      showToast(data.message, 'success')
       fetchReminders()
     } catch (error) {
       console.error('Error sending reminder:', error)
@@ -349,7 +397,7 @@ export default function Admin() {
           tags: [''],
           isPublished: true
         })
-        alert(editingArticle ? 'Article updated successfully!' : 'Article created successfully!')
+        showToast(editingArticle ? 'Article updated successfully!' : 'Article created successfully!', 'success')
       }
     } catch (error) {
       console.error('Error saving article:', error)
@@ -378,6 +426,257 @@ export default function Admin() {
     } catch (error) {
       console.error('Error fetching quotes:', error)
     }
+  }
+
+  const fetchRules = async () => {
+    try {
+      const response = await fetch('/api/rules')
+      const data = await response.json()
+      setRules(data)
+    } catch (error) {
+      console.error('Error fetching rules:', error)
+    }
+  }
+
+  const fetchContactInfo = async () => {
+    try {
+      const response = await fetch('/api/contact-info')
+      if (response.ok) {
+        const data = await response.json()
+        setContactInfo(data)
+      }
+    } catch (error) {
+      console.error('Error fetching contact info:', error)
+    }
+  }
+
+  const saveContactInfo = async () => {
+    try {
+      const response = await fetch('/api/contact-info', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactInfo)
+      })
+      if (response.ok) {
+        showToast('Contact information updated successfully', 'success')
+      }
+    } catch (error) {
+      console.error('Error saving contact info:', error)
+      showToast('Error saving contact information', 'error')
+    }
+  }
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault()
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      showToast('New passwords do not match', 'error')
+      return
+    }
+    
+    if (passwordForm.newPassword.length < 6) {
+      showToast('Password must be at least 6 characters long', 'error')
+      return
+    }
+    
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(passwordForm)
+      })
+      
+      const data = await response.json()
+      if (response.ok) {
+        showToast('Password updated successfully', 'success')
+        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      } else {
+        showToast(data.message || 'Failed to update password', 'error')
+      }
+    } catch (error) {
+      console.error('Error changing password:', error)
+      showToast('Error updating password', 'error')
+    }
+  }
+
+  const saveRules = async () => {
+    try {
+      const response = await fetch('/api/rules', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rules)
+      })
+      if (response.ok) {
+        showToast('Rules updated successfully', 'success')
+      }
+    } catch (error) {
+      console.error('Error saving rules:', error)
+    }
+  }
+
+  const updateRule = (category, key, value) => {
+    setRules(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value
+      }
+    }))
+  }
+
+  function RulesTab() {
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+          <h3 style={{ margin: 0, color: '#333' }}>System Rules</h3>
+          <button 
+            onClick={saveRules}
+            style={{
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Save Rules
+          </button>
+        </div>
+
+        <div className="row">
+          <div className="col-md-6">
+            <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+              <h5 style={{ color: '#333', marginBottom: '15px' }}><i className="fas fa-door-open"></i> Door Access Rules</h5>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={rules.doorAccess.requirePayment}
+                    onChange={(e) => updateRule('doorAccess', 'requirePayment', e.target.checked)}
+                    style={{ marginRight: '10px' }}
+                  />
+                  Require Payment for Access
+                </label>
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Grace Period (Days):</label>
+                <input 
+                  type="number" 
+                  value={rules.doorAccess.gracePeriodDays}
+                  onChange={(e) => updateRule('doorAccess', 'gracePeriodDays', parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={rules.doorAccess.allowPartialPayment}
+                    onChange={(e) => updateRule('doorAccess', 'allowPartialPayment', e.target.checked)}
+                    style={{ marginRight: '10px' }}
+                  />
+                  Allow Partial Payment Access
+                </label>
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>QR Code Expiry (Hours):</label>
+                <input 
+                  type="number" 
+                  value={rules.doorAccess.qrExpiryHours}
+                  onChange={(e) => updateRule('doorAccess', 'qrExpiryHours', parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Max Daily Entries:</label>
+                <input 
+                  type="number" 
+                  value={rules.doorAccess.maxDailyEntries}
+                  onChange={(e) => updateRule('doorAccess', 'maxDailyEntries', parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="col-md-6">
+            <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+              <h5 style={{ color: '#333', marginBottom: '15px' }}><i className="fas fa-bell"></i> Payment Reminder Rules</h5>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>First Reminder (Days Before Due):</label>
+                <input 
+                  type="number" 
+                  value={rules.paymentReminders.firstReminderDays}
+                  onChange={(e) => updateRule('paymentReminders', 'firstReminderDays', parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Second Reminder (Days Before Due):</label>
+                <input 
+                  type="number" 
+                  value={rules.paymentReminders.secondReminderDays}
+                  onChange={(e) => updateRule('paymentReminders', 'secondReminderDays', parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Final Reminder (Days Before Due):</label>
+                <input 
+                  type="number" 
+                  value={rules.paymentReminders.finalReminderDays}
+                  onChange={(e) => updateRule('paymentReminders', 'finalReminderDays', parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Suspension After (Days Overdue):</label>
+                <input 
+                  type="number" 
+                  value={rules.paymentReminders.suspensionAfterDays}
+                  onChange={(e) => updateRule('paymentReminders', 'suspensionAfterDays', parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={rules.paymentReminders.autoSmsEnabled}
+                    onChange={(e) => updateRule('paymentReminders', 'autoSmsEnabled', e.target.checked)}
+                    style={{ marginRight: '10px' }}
+                  />
+                  Auto SMS Reminders
+                </label>
+              </div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={rules.paymentReminders.autoEmailEnabled}
+                    onChange={(e) => updateRule('paymentReminders', 'autoEmailEnabled', e.target.checked)}
+                    style={{ marginRight: '10px' }}
+                  />
+                  Auto Email Reminders
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const handleQuoteSubmit = async (e) => {
@@ -478,7 +777,7 @@ export default function Admin() {
           duration: '',
           notes: ''
         })
-        alert(editingDiet ? 'Diet plan updated successfully!' : 'Diet plan assigned successfully!')
+        showToast(editingDiet ? 'Diet plan updated successfully!' : 'Diet plan assigned successfully!', 'success')
       }
     } catch (error) {
       console.error('Error saving diet plan:', error)
@@ -523,7 +822,7 @@ export default function Admin() {
         fetchNotifications()
         setShowNotificationForm(false)
         setNotificationForm({ title: '', message: '', classId: '', className: '' })
-        alert('Notification sent to all members in the selected class!')
+        showToast('Notification sent to all members in the selected class!', 'success')
       }
     } catch (error) {
       console.error('Error sending notification:', error)
@@ -862,8 +1161,6 @@ export default function Admin() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ color: 'white', margin: 0 }}>Elite Sports Academy - Admin Panel</h2>
               <div>
-                <a href="/classes" style={{ color: '#f36100', textDecoration: 'none', marginRight: '20px' }}>Classes</a>
-                <a href="/" style={{ color: '#f36100', textDecoration: 'none', marginRight: '20px' }}>← Back to Home</a>
                 <button 
                   onClick={() => {
                     localStorage.removeItem('adminToken')
@@ -1036,6 +1333,71 @@ export default function Admin() {
               }}
             >
               Quotes
+            </button>
+            <button 
+              onClick={() => setActiveTab('roles')}
+              style={{
+                backgroundColor: activeTab === 'roles' ? '#f36100' : 'transparent',
+                color: activeTab === 'roles' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Instructor Roles
+            </button>
+            <button 
+              onClick={() => setActiveTab('reports')}
+              style={{
+                backgroundColor: activeTab === 'reports' ? '#f36100' : 'transparent',
+                color: activeTab === 'reports' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Reports
+            </button>
+            <button 
+              onClick={() => setActiveTab('rules')}
+              style={{
+                backgroundColor: activeTab === 'rules' ? '#f36100' : 'transparent',
+                color: activeTab === 'rules' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Rules
+            </button>
+            <button 
+              onClick={() => setActiveTab('contact')}
+              style={{
+                backgroundColor: activeTab === 'contact' ? '#f36100' : 'transparent',
+                color: activeTab === 'contact' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Contact Info
+            </button>
+            <button 
+              onClick={() => setActiveTab('password')}
+              style={{
+                backgroundColor: activeTab === 'password' ? '#f36100' : 'transparent',
+                color: activeTab === 'password' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Change Password
             </button>
           </div>
         </div>
@@ -1266,9 +1628,7 @@ export default function Admin() {
                     )}
 
                     {loading ? (
-                      <div style={{ textAlign: 'center', padding: '50px' }}>
-                        <p>Loading members...</p>
-                      </div>
+                      <LoadingSpinner size="large" text="Loading members..." />
                     ) : (
                       <>
                         <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -3380,6 +3740,510 @@ export default function Admin() {
                   </>
                 )}
 
+                {activeTab === 'roles' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Instructor Role Management</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table className="table table-striped">
+                        <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                          <tr>
+                            <th>Instructor</th>
+                            <th>Email</th>
+                            <th>Manage Classes</th>
+                            <th>View Reports</th>
+                            <th>Manage Members</th>
+                            <th>View Payments</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {instructors.map(instructor => (
+                            <tr key={instructor._id}>
+                              <td>{instructor.name}</td>
+                              <td>{instructor.email}</td>
+                              <td className="text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={instructor.privileges?.canManageClasses || false}
+                                  onChange={async (e) => {
+                                    try {
+                                      const updatedPrivileges = {
+                                        canManageClasses: false,
+                                        canViewReports: false,
+                                        canManageMembers: false,
+                                        canViewPayments: false,
+                                        ...instructor.privileges,
+                                        canManageClasses: e.target.checked
+                                      };
+                                      const response = await fetch(`/api/instructors/${instructor._id}/privileges`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ privileges: updatedPrivileges })
+                                      });
+                                      if (response.ok) {
+                                        fetchInstructors();
+                                        alert('Privileges updated successfully');
+                                      } else {
+                                        alert('Failed to update privileges');
+                                      }
+                                    } catch (error) {
+                                      console.error('Error:', error);
+                                      alert('Error updating privileges');
+                                    }
+                                  }}
+                                />
+                              </td>
+                              <td className="text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={instructor.privileges?.canViewReports || false}
+                                  onChange={async (e) => {
+                                    try {
+                                      const updatedPrivileges = {
+                                        canManageClasses: false,
+                                        canViewReports: false,
+                                        canManageMembers: false,
+                                        canViewPayments: false,
+                                        ...instructor.privileges,
+                                        canViewReports: e.target.checked
+                                      };
+                                      const response = await fetch(`/api/instructors/${instructor._id}/privileges`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ privileges: updatedPrivileges })
+                                      });
+                                      if (response.ok) {
+                                        fetchInstructors();
+                                        alert('Privileges updated successfully');
+                                      } else {
+                                        alert('Failed to update privileges');
+                                      }
+                                    } catch (error) {
+                                      console.error('Error:', error);
+                                      alert('Error updating privileges');
+                                    }
+                                  }}
+                                />
+                              </td>
+                              <td className="text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={instructor.privileges?.canManageMembers || false}
+                                  onChange={async (e) => {
+                                    try {
+                                      const updatedPrivileges = {
+                                        canManageClasses: false,
+                                        canViewReports: false,
+                                        canManageMembers: false,
+                                        canViewPayments: false,
+                                        ...instructor.privileges,
+                                        canManageMembers: e.target.checked
+                                      };
+                                      const response = await fetch(`/api/instructors/${instructor._id}/privileges`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ privileges: updatedPrivileges })
+                                      });
+                                      if (response.ok) {
+                                        fetchInstructors();
+                                        alert('Privileges updated successfully');
+                                      } else {
+                                        alert('Failed to update privileges');
+                                      }
+                                    } catch (error) {
+                                      console.error('Error:', error);
+                                      alert('Error updating privileges');
+                                    }
+                                  }}
+                                />
+                              </td>
+                              <td className="text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={instructor.privileges?.canViewPayments || false}
+                                  onChange={async (e) => {
+                                    try {
+                                      const updatedPrivileges = {
+                                        canManageClasses: false,
+                                        canViewReports: false,
+                                        canManageMembers: false,
+                                        canViewPayments: false,
+                                        ...instructor.privileges,
+                                        canViewPayments: e.target.checked
+                                      };
+                                      const response = await fetch(`/api/instructors/${instructor._id}/privileges`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ privileges: updatedPrivileges })
+                                      });
+                                      if (response.ok) {
+                                        fetchInstructors();
+                                        alert('Privileges updated successfully');
+                                      } else {
+                                        alert('Failed to update privileges');
+                                      }
+                                    } catch (error) {
+                                      console.error('Error:', error);
+                                      alert('Error updating privileges');
+                                    }
+                                  }}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+
+                {activeTab === 'reports' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Reports Module</h3>
+                    </div>
+                    <iframe 
+                      src="/reports" 
+                      style={{ 
+                        width: '100%', 
+                        height: '800px', 
+                        border: 'none', 
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                      }}
+                      title="Reports Module"
+                    />
+                  </>
+                )}
+
+                {activeTab === 'rules' && <RulesTab />}
+
+                {activeTab === 'password' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Change Admin Password</h3>
+                    </div>
+
+                    <div className="row justify-content-center">
+                      <div className="col-md-6">
+                        <div style={{ backgroundColor: '#f8f9fa', padding: '30px', borderRadius: '8px' }}>
+                          <form onSubmit={handlePasswordChange}>
+                            <div style={{ marginBottom: '20px' }}>
+                              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                                <i className="fas fa-lock me-2"></i>Current Password *
+                              </label>
+                              <input 
+                                type="password" 
+                                value={passwordForm.currentPassword}
+                                onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                                required
+                                style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px' }}
+                                placeholder="Enter current password"
+                              />
+                            </div>
+                            
+                            <div style={{ marginBottom: '20px' }}>
+                              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                                <i className="fas fa-key me-2"></i>New Password *
+                              </label>
+                              <input 
+                                type="password" 
+                                value={passwordForm.newPassword}
+                                onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                                required
+                                minLength="6"
+                                style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px' }}
+                                placeholder="Enter new password (min 6 characters)"
+                              />
+                            </div>
+                            
+                            <div style={{ marginBottom: '25px' }}>
+                              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                                <i className="fas fa-check-circle me-2"></i>Confirm New Password *
+                              </label>
+                              <input 
+                                type="password" 
+                                value={passwordForm.confirmPassword}
+                                onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                                required
+                                style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px' }}
+                                placeholder="Confirm new password"
+                              />
+                            </div>
+                            
+                            <button 
+                              type="submit"
+                              style={{
+                                backgroundColor: '#28a745',
+                                color: 'white',
+                                border: 'none',
+                                padding: '12px 30px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                width: '100%'
+                              }}
+                            >
+                              <i className="fas fa-save me-2"></i>
+                              Update Password
+                            </button>
+                          </form>
+                          
+                          <div style={{ backgroundColor: '#fff3cd', border: '1px solid #ffeaa7', borderRadius: '6px', padding: '15px', marginTop: '20px' }}>
+                            <h6 style={{ color: '#856404', marginBottom: '10px' }}>
+                              <i className="fas fa-info-circle me-2"></i>Password Requirements:
+                            </h6>
+                            <ul style={{ color: '#856404', fontSize: '14px', marginBottom: 0, paddingLeft: '20px' }}>
+                              <li>Minimum 6 characters long</li>
+                              <li>Use a strong, unique password</li>
+                              <li>Don't share your password with others</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {activeTab === 'contact' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Contact Information Management</h3>
+                      <button 
+                        onClick={saveContactInfo}
+                        style={{
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px 20px',
+                          borderRadius: '5px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                          <h5 style={{ color: '#333', marginBottom: '15px' }}><i className="fas fa-info-circle"></i> Basic Information</h5>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Title/Slogan:</label>
+                            <input 
+                              type="text" 
+                              value={contactInfo.title}
+                              onChange={(e) => setContactInfo({...contactInfo, title: e.target.value})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Description:</label>
+                            <textarea 
+                              value={contactInfo.description}
+                              onChange={(e) => setContactInfo({...contactInfo, description: e.target.value})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', height: '80px' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Address:</label>
+                            <textarea 
+                              value={contactInfo.address}
+                              onChange={(e) => setContactInfo({...contactInfo, address: e.target.value})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', height: '60px' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Phone Number:</label>
+                            <input 
+                              type="text" 
+                              value={contactInfo.phone}
+                              onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Email Address:</label>
+                            <input 
+                              type="email" 
+                              value={contactInfo.email}
+                              onChange={(e) => setContactInfo({...contactInfo, email: e.target.value})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Website:</label>
+                            <input 
+                              type="text" 
+                              value={contactInfo.website}
+                              onChange={(e) => setContactInfo({...contactInfo, website: e.target.value})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="col-md-6">
+                        <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                          <h5 style={{ color: '#333', marginBottom: '15px' }}><i className="fas fa-share-alt"></i> Social Media Links</h5>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Facebook:</label>
+                            <input 
+                              type="url" 
+                              value={contactInfo.socialMedia.facebook}
+                              onChange={(e) => setContactInfo({...contactInfo, socialMedia: {...contactInfo.socialMedia, facebook: e.target.value}})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Instagram:</label>
+                            <input 
+                              type="url" 
+                              value={contactInfo.socialMedia.instagram}
+                              onChange={(e) => setContactInfo({...contactInfo, socialMedia: {...contactInfo.socialMedia, instagram: e.target.value}})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>YouTube:</label>
+                            <input 
+                              type="url" 
+                              value={contactInfo.socialMedia.youtube}
+                              onChange={(e) => setContactInfo({...contactInfo, socialMedia: {...contactInfo.socialMedia, youtube: e.target.value}})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px' }}>
+                          <h5 style={{ color: '#333', marginBottom: '15px' }}><i className="fas fa-clock"></i> Business Hours</h5>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Weekdays (Mon-Fri):</label>
+                            <input 
+                              type="text" 
+                              value={contactInfo.businessHours.weekdays}
+                              onChange={(e) => setContactInfo({...contactInfo, businessHours: {...contactInfo.businessHours, weekdays: e.target.value}})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Weekends (Sat-Sun):</label>
+                            <input 
+                              type="text" 
+                              value={contactInfo.businessHours.weekends}
+                              onChange={(e) => setContactInfo({...contactInfo, businessHours: {...contactInfo.businessHours, weekends: e.target.value}})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="row">
+                      <div className="col-md-12">
+                        <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                          <h5 style={{ color: '#333', marginBottom: '15px' }}><i className="fas fa-map-marker-alt"></i> Map Location</h5>
+                          
+                          <div className="row">
+                            <div className="col-md-6">
+                              <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Latitude:</label>
+                                <input 
+                                  type="number" 
+                                  step="any"
+                                  value={contactInfo.mapLocation.latitude}
+                                  onChange={(e) => setContactInfo({...contactInfo, mapLocation: {...contactInfo.mapLocation, latitude: parseFloat(e.target.value)}})}
+                                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                />
+                              </div>
+                            </div>
+                            <div className="col-md-6">
+                              <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Longitude:</label>
+                                <input 
+                                  type="number" 
+                                  step="any"
+                                  value={contactInfo.mapLocation.longitude}
+                                  onChange={(e) => setContactInfo({...contactInfo, mapLocation: {...contactInfo.mapLocation, longitude: parseFloat(e.target.value)}})}
+                                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Google Maps Embed URL:</label>
+                            <textarea 
+                              value={contactInfo.mapLocation.embedUrl}
+                              onChange={(e) => setContactInfo({...contactInfo, mapLocation: {...contactInfo.mapLocation, embedUrl: e.target.value}})}
+                              style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', height: '80px' }}
+                              placeholder="Paste Google Maps embed URL here"
+                            />
+                          </div>
+                          
+                          <div style={{ backgroundColor: '#fff3cd', border: '1px solid #ffeaa7', borderRadius: '4px', padding: '10px', marginBottom: '15px' }}>
+                            <small style={{ color: '#856404', fontSize: '12px' }}>
+                              <strong><i className="fas fa-info-circle me-1"></i>How to get embed URL:</strong><br/>
+                              1. Go to Google Maps and search for your location<br/>
+                              2. Click "Share" → "Embed a map"<br/>
+                              3. Copy the iframe src URL and paste above
+                            </small>
+                          </div>
+                          
+                          {contactInfo.mapLocation.embedUrl && (
+                            <div style={{ marginTop: '15px' }}>
+                              <h6 style={{ marginBottom: '10px' }}>Map Preview:</h6>
+                              <iframe
+                                src={contactInfo.mapLocation.embedUrl}
+                                width="100%"
+                                height="200"
+                                style={{ border: 0, borderRadius: '8px' }}
+                                allowFullScreen
+                                loading="lazy"
+                              ></iframe>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ backgroundColor: '#e3f2fd', border: '1px solid #90caf9', borderRadius: '8px', padding: '20px', marginTop: '20px' }}>
+                      <h5 style={{ color: '#1976d2', marginBottom: '15px' }}><i className="fas fa-eye"></i> Preview</h5>
+                      <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', border: '2px solid #f36100' }}>
+                        <h4 style={{ color: '#f36100', marginBottom: '10px' }}>{contactInfo.title}</h4>
+                        <p style={{ color: '#666', marginBottom: '15px' }}>{contactInfo.description}</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', fontSize: '14px' }}>
+                          <div><i className="fas fa-map-marker-alt" style={{ color: '#f36100', marginRight: '8px' }}></i>{contactInfo.address}</div>
+                          <div><i className="fas fa-phone" style={{ color: '#f36100', marginRight: '8px' }}></i>{contactInfo.phone}</div>
+                          <div><i className="fas fa-envelope" style={{ color: '#f36100', marginRight: '8px' }}></i>{contactInfo.email}</div>
+                        </div>
+                        <div style={{ marginTop: '15px', fontSize: '14px' }}>
+                          <strong>Business Hours:</strong><br/>
+                          Weekdays: {contactInfo.businessHours.weekdays}<br/>
+                          Weekends: {contactInfo.businessHours.weekends}
+                        </div>
+                        <div style={{ marginTop: '15px', fontSize: '14px' }}>
+                          <strong>Location:</strong><br/>
+                          Lat: {contactInfo.mapLocation.latitude}, Lng: {contactInfo.mapLocation.longitude}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {activeTab === 'quotes' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -3550,6 +4414,7 @@ export default function Admin() {
           </div>
         </div>
       </div>
+      <Toast />
     </>
   )
 }

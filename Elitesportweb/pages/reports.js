@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import * as XLSX from 'xlsx'
+import Toast, { showToast } from '../components/Toast'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function Reports() {
   const [reportType, setReportType] = useState('class-members')
   const [selectedClass, setSelectedClass] = useState('')
   const [selectedMonth, setSelectedMonth] = useState('')
+  const [selectedInstructor, setSelectedInstructor] = useState('')
   const [classes, setClasses] = useState([])
+  const [instructors, setInstructors] = useState([])
   const [reportData, setReportData] = useState([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     fetchClasses()
+    fetchInstructors()
   }, [])
 
   const fetchClasses = async () => {
@@ -23,6 +29,16 @@ export default function Reports() {
     }
   }
 
+  const fetchInstructors = async () => {
+    try {
+      const response = await fetch('/api/instructors')
+      const data = await response.json()
+      setInstructors(data.instructors || data)
+    } catch (error) {
+      console.error('Error fetching instructors:', error)
+    }
+  }
+
   const generateReport = async () => {
     setLoading(true)
     try {
@@ -31,6 +47,7 @@ export default function Reports() {
       
       if (selectedClass) params.append('classId', selectedClass)
       if (selectedMonth) params.append('month', selectedMonth)
+      if (selectedInstructor) params.append('instructor', selectedInstructor)
       
       if (params.toString()) url += `?${params.toString()}`
       
@@ -43,13 +60,53 @@ export default function Reports() {
     setLoading(false)
   }
 
-  const exportToPDF = () => {
-    const printContent = document.getElementById('report-content')
-    const originalContent = document.body.innerHTML
-    document.body.innerHTML = printContent.innerHTML
+  const exportToPDF = async () => {
+    const jsPDF = (await import('jspdf')).default
+    await import('jspdf-autotable')
+    
+    const doc = new jsPDF()
+    doc.text('Elite Sports Academy Report', 20, 20)
+    doc.text(getReportTitle(), 20, 30)
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, 40)
+    
+    const tableData = reportData.map(item => {
+      if (reportType === 'class-members') {
+        return [item.memberName, item.email, item.phone, item.className, item.status]
+      } else if (reportType === 'class-list') {
+        return [item.name, item.instructor, item.category, `${item.duration} mins`, item.capacity]
+      } else if (reportType === 'instructor-classes') {
+        return [item.instructorName, item.totalClasses, item.classes.map(c => `${c.name} (${c.day} ${c.time})`).join(', ')]
+      } else {
+        return [item.memberName, item.className, `LKR ${item.amount}`, new Date(item.dueDate).toLocaleDateString(), item.status]
+      }
+    })
+    
+    const headers = reportType === 'class-members' 
+      ? ['Member Name', 'Email', 'Phone', 'Class', 'Status']
+      : reportType === 'class-list'
+      ? ['Class Name', 'Instructor', 'Category', 'Duration', 'Capacity']
+      : reportType === 'instructor-classes'
+      ? ['Instructor', 'Total Classes', 'Class Details']
+      : ['Member', 'Class', 'Amount', 'Due Date', 'Status']
+    
+    doc.autoTable({
+      head: [headers],
+      body: tableData,
+      startY: 50
+    })
+    
+    doc.save(`${getReportTitle()}.pdf`)
+  }
+
+  const exportToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(reportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Report')
+    XLSX.writeFile(wb, `${getReportTitle()}.xlsx`)
+  }
+
+  const printReport = () => {
     window.print()
-    document.body.innerHTML = originalContent
-    window.location.reload()
   }
 
   const getReportTitle = () => {
@@ -94,6 +151,22 @@ export default function Reports() {
                 <option value="payment-paid">Paid Payments</option>
               </select>
             </div>
+
+            {reportType === 'instructor-classes' && (
+              <div className="mb-4">
+                <label className="form-label">Select Instructor</label>
+                <select 
+                  className="form-select"
+                  value={selectedInstructor}
+                  onChange={(e) => setSelectedInstructor(e.target.value)}
+                >
+                  <option value="">All Instructors</option>
+                  {instructors.map(instructor => (
+                    <option key={instructor._id} value={instructor.name}>{instructor.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {(reportType === 'class-members' || reportType === 'payment-unpaid' || reportType === 'payment-paid') && (
               <div className="mb-4">
@@ -142,13 +215,29 @@ export default function Reports() {
             </button>
 
             {reportData.length > 0 && (
-              <button 
-                className="btn btn-success w-100"
-                onClick={exportToPDF}
-              >
-                <i className="fas fa-file-pdf me-2"></i>
-                Export to PDF
-              </button>
+              <div>
+                <button 
+                  className="btn btn-danger w-100 mb-2"
+                  onClick={exportToPDF}
+                >
+                  <i className="fas fa-file-pdf me-2"></i>
+                  Export PDF
+                </button>
+                <button 
+                  className="btn btn-success w-100 mb-2"
+                  onClick={exportToExcel}
+                >
+                  <i className="fas fa-file-excel me-2"></i>
+                  Export Excel
+                </button>
+                <button 
+                  className="btn btn-info w-100"
+                  onClick={printReport}
+                >
+                  <i className="fas fa-print me-2"></i>
+                  Print
+                </button>
+              </div>
             )}
 
             <div className="mt-4">
@@ -171,12 +260,7 @@ export default function Reports() {
 
             <div id="report-content">
               {loading ? (
-                <div className="text-center py-5">
-                  <div className="spinner-border text-primary" style={{width: '3rem', height: '3rem'}}>
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <p className="mt-3">Generating report...</p>
-                </div>
+                <LoadingSpinner size="large" text="Generating report..." />
               ) : reportData.length === 0 ? (
                 <div className="text-center py-5">
                   <i className="fas fa-chart-bar text-muted" style={{fontSize: '4rem'}}></i>
@@ -214,10 +298,8 @@ export default function Reports() {
                         {reportType === 'instructor-classes' && (
                           <>
                             <th>Instructor</th>
-                            <th>Class Name</th>
-                            <th>Category</th>
-                            <th>Schedule</th>
-                            <th>Members</th>
+                            <th>Total Classes</th>
+                            <th>Class Details</th>
                           </>
                         )}
                         {(reportType === 'payment-unpaid' || reportType === 'payment-paid') && (
@@ -265,11 +347,16 @@ export default function Reports() {
                           )}
                           {reportType === 'instructor-classes' && (
                             <>
-                              <td>{item.instructorName}</td>
-                              <td>{item.className}</td>
-                              <td>{item.category}</td>
-                              <td>{item.schedule}</td>
-                              <td>{item.memberCount}</td>
+                              <td><strong>{item.instructorName}</strong></td>
+                              <td><span className="badge bg-primary">{item.totalClasses}</span></td>
+                              <td>
+                                {item.classes.map((cls, idx) => (
+                                  <div key={idx} className="mb-1">
+                                    <strong>{cls.name}</strong> - {cls.category} 
+                                    <small className="text-muted">({cls.day} {cls.time})</small>
+                                  </div>
+                                ))}
+                              </td>
                             </>
                           )}
                           {(reportType === 'payment-unpaid' || reportType === 'payment-paid') && (
@@ -301,6 +388,22 @@ export default function Reports() {
           </div>
         </div>
       </div>
+      
+      <style jsx global>{`
+        @media print {
+          .col-md-3 {
+            display: none !important;
+          }
+          .col-md-9 {
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .btn {
+            display: none !important;
+          }
+        }
+      `}</style>
+    <Toast />
     </>
   )
 }
