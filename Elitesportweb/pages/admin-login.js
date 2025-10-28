@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Toast from '../components/Toast';
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const router = useRouter();
 
   const handleSubmit = async (e) => {
