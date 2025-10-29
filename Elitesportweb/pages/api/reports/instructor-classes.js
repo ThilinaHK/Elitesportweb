@@ -1,4 +1,4 @@
-import connectDB from '../../../lib/mongodb';
+import dbConnect from '../../../lib/mongodb';
 import Class from '../../../models/Class';
 import Instructor from '../../../models/Instructor';
 
@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await connectDB();
+    await dbConnect();
     
     const { instructor } = req.query;
     

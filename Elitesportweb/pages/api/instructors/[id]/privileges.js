@@ -1,4 +1,4 @@
-import connectDB from '../../../../lib/mongodb';
+import dbConnect from '../../../../lib/mongodb';
 import Instructor from '../../../../models/Instructor';
 
 export default async function handler(req, res) {
@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await connectDB();
+    await dbConnect();
     
     const { id } = req.query;
     const { privileges } = req.body;

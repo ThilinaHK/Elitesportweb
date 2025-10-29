@@ -1,8 +1,8 @@
-import { connectToDatabase } from '../../lib/mongodb'
+import dbConnect from '../../lib/mongodb'
 
 export default async function handler(req, res) {
   try {
-    const { db } = await connectToDatabase()
+    await dbConnect()
     
     if (req.method === 'GET') {
       // Get contact information

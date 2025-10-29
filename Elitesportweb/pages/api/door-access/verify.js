@@ -1,4 +1,4 @@
-import connectDB from '../../../lib/mongodb';
+import dbConnect from '../../../lib/mongodb';
 import Member from '../../../models/Member';
 import Payment from '../../../models/Payment';
 
@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await connectDB();
+    await dbConnect();
     
     const { qrData } = req.body;
     const data = JSON.parse(qrData);
