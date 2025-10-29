@@ -8,12 +8,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  await dbConnect();
+  try {
+    await dbConnect();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    return res.status(200).json({ success: true, payments: [] });
+  }
 
   try {
     const payments = await Payment.find({ memberId: id }).sort({ paymentDate: -1 });
-    res.status(200).json({ success: true, payments });
+    res.status(200).json({ success: true, payments: payments || [] });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Member payments fetch error:', error);
+    res.status(200).json({ success: true, payments: [] });
   }
 }

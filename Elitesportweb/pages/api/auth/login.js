@@ -28,9 +28,11 @@ export default async function handler(req, res) {
     });
 
     if (!member) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      console.log('Login attempt failed for:', email, phone);
+      return res.status(200).json({ success: false, message: 'Invalid credentials' });
     }
 
+    console.log('Login successful for member:', member._id);
     res.status(200).json({ success: true, member });
   } catch (error) {
     console.error('Login error:', error);

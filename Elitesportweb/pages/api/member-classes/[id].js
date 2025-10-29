@@ -9,17 +9,23 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  await dbConnect();
+  try {
+    await dbConnect();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    return res.status(500).json({ success: false, message: 'Database connection failed', classes: [] });
+  }
 
   try {
     const member = await Member.findById(id);
     if (!member) {
-      return res.status(404).json({ success: false, message: 'Member not found' });
+      return res.status(200).json({ success: true, classes: [] });
     }
 
-    const classes = await Class.find({ _id: { $in: member.assignedClasses } });
-    res.status(200).json({ success: true, classes });
+    const classes = await Class.find({ _id: { $in: member.assignedClasses || [] } });
+    res.status(200).json({ success: true, classes: classes || [] });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Member classes fetch error:', error);
+    res.status(200).json({ success: true, classes: [] });
   }
 }

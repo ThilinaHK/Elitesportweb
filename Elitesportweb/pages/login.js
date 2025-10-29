@@ -28,11 +28,14 @@ export default function Login() {
       });
       
       const data = await res.json();
+      console.log('Login response:', data);
       if (data.success) {
         setToast({ show: true, message: 'Login successful! Redirecting...', type: 'success' });
+        console.log('Setting member ID:', data.member._id);
         localStorage.setItem('memberId', data.member._id);
         setTimeout(() => router.push('/member-dashboard'), 1000);
       } else {
+        console.log('Login failed:', data.message);
         setToast({ show: true, message: data.message || 'Invalid credentials', type: 'error' });
       }
     } catch (error) {

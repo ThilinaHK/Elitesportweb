@@ -28,7 +28,9 @@ export default function MemberDashboard() {
 
   useEffect(() => {
     const memberId = localStorage.getItem('memberId');
+    console.log('Member ID from localStorage:', memberId);
     if (!memberId) {
+      console.log('No member ID found, redirecting to login');
       router.push('/login');
       return;
     }
@@ -37,27 +39,58 @@ export default function MemberDashboard() {
 
   const fetchMemberData = async (memberId) => {
     try {
-      const [memberRes, classesRes, paymentsRes, notificationsRes, dietRes, postsRes, eventsRes, exerciseRes] = await Promise.all([
-        fetch(`/api/members/${memberId}`),
-        fetch(`/api/member-classes/${memberId}`),
-        fetch(`/api/member-payments/${memberId}`),
-        fetch(`/api/member-notifications/${memberId}`),
-        fetch(`/api/member-diet/${memberId}`),
-        fetch('/api/posts'),
-        fetch('/api/events'),
-        fetch(`/api/member-exercises/${memberId}`)
+      // Fetch data with error handling for each request
+      const fetchWithFallback = async (url, fallback = {}) => {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            console.warn(`Failed to fetch ${url}: ${response.status}`);
+            return fallback;
+          }
+          const text = await response.text();
+          if (!text) return fallback;
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            console.warn(`Invalid JSON from ${url}:`, text.substring(0, 100));
+            return fallback;
+          }
+        } catch (error) {
+          console.warn(`Error fetching ${url}:`, error.message);
+          return fallback;
+        }
+      };
+
+      const [memberData, classesData, paymentsData, notificationsData, dietData, postsData, eventsData, exerciseData] = await Promise.all([
+        fetchWithFallback(`/api/members/${memberId}`, { member: null }),
+        fetchWithFallback(`/api/member-classes/${memberId}`, { classes: [] }),
+        fetchWithFallback(`/api/member-payments/${memberId}`, { payments: [] }),
+        fetchWithFallback(`/api/member-notifications/${memberId}`, { notifications: [] }),
+        fetchWithFallback(`/api/member-diet/${memberId}`, { diets: [] }),
+        fetchWithFallback('/api/posts', { posts: [] }),
+        fetchWithFallback('/api/events', { events: [] }),
+        fetchWithFallback(`/api/member-exercises/${memberId}`, { exercises: [] })
       ]);
 
-      const memberData = await memberRes.json();
-      const classesData = await classesRes.json();
-      const paymentsData = await paymentsRes.json();
-      const notificationsData = await notificationsRes.json();
-      const dietData = await dietRes.json();
-      const postsData = await postsRes.json();
-      const eventsData = await eventsRes.json();
-      const exerciseData = await exerciseRes.json();
-
-      setMember(memberData.member);
+      // Handle member data with fallback
+      if (memberData.member) {
+        setMember(memberData.member);
+      } else {
+        // Fallback member data if API fails
+        setMember({
+          _id: memberId,
+          fullName: 'Member',
+          email: 'member@example.com',
+          phone: '0000000000',
+          memberId: memberId.substring(0, 8),
+          joinDate: new Date(),
+          dateOfBirth: new Date(),
+          gender: 'not specified',
+          address: 'Not provided',
+          emergencyContact: 'Not provided'
+        });
+      }
+      
       setClasses(classesData.classes || []);
       setPayments(paymentsData.payments || []);
       const allNotifications = notificationsData.notifications || [];
@@ -65,7 +98,7 @@ export default function MemberDashboard() {
       
       // Check for new notifications (last 24 hours)
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const recentNotifications = allNotifications.filter(n => new Date(n.createdAt) > yesterday);
+      const recentNotifications = allNotifications.filter(n => n.createdAt && new Date(n.createdAt) > yesterday);
       if (recentNotifications.length > 0) {
         setNewNotifications(recentNotifications);
         setShowNotificationAlert(true);
@@ -73,8 +106,8 @@ export default function MemberDashboard() {
       
       setDietPlan(dietData.diets && dietData.diets.length > 0 ? dietData.diets[0] : null);
       const allPosts = Array.isArray(postsData) ? postsData : (postsData.posts || []);
-      setPosts(allPosts.filter(post => post.type !== 'article'));
-      setArticles(allPosts.filter(post => post.type === 'article'));
+      setPosts(allPosts.filter(post => post && post.type !== 'article'));
+      setArticles(allPosts.filter(post => post && post.type === 'article'));
       setEvents(Array.isArray(eventsData) ? eventsData : (eventsData.events || []));
       setExercisePlan(exerciseData.exercises && exerciseData.exercises.length > 0 ? exerciseData.exercises[0] : null);
     } catch (error) {

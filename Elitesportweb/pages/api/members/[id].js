@@ -7,14 +7,20 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       await dbConnect()
+    } catch (error) {
+      console.error('Database connection failed:', error)
+      return res.status(500).json({ success: false, error: 'Database connection failed', member: null })
+    }
+    
+    try {
       const member = await Member.findById(id)
       if (!member) {
-        return res.status(404).json({ error: 'Member not found' })
+        return res.status(404).json({ success: false, error: 'Member not found', member: null })
       }
-      res.json({ member })
+      res.json({ success: true, member })
     } catch (error) {
       console.error('Member fetch error:', error)
-      res.status(500).json({ error: error.message })
+      res.status(500).json({ success: false, error: error.message, member: null })
     }
   } else if (req.method === 'PUT') {
     try {
