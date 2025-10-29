@@ -3,6 +3,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Toast, { showToast } from '../components/Toast'
 import LoadingSpinner from '../components/LoadingSpinner'
+import DietPlanManager from '../components/DietPlanManager'
 
 export default function Admin() {
   const router = useRouter()
@@ -38,6 +39,8 @@ export default function Admin() {
     notes: ''
   })
   const [paymentFilter, setPaymentFilter] = useState('all')
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all')
+  const [paymentMonthFilter, setPaymentMonthFilter] = useState('all')
   const [reminders, setReminders] = useState([])
   const [paymentStatus, setPaymentStatus] = useState([])
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
@@ -87,6 +90,19 @@ export default function Admin() {
   })
   const [showNotificationForm, setShowNotificationForm] = useState(false)
   const [diets, setDiets] = useState([])
+  const [exercises, setExercises] = useState([])
+  const [exerciseForm, setExerciseForm] = useState({
+    memberId: '',
+    memberName: '',
+    planName: '',
+    description: '',
+    exercises: [{ name: '', sets: '', reps: '', weight: '', rest: '' }],
+    duration: '',
+    difficulty: 'beginner',
+    notes: ''
+  })
+  const [showExerciseForm, setShowExerciseForm] = useState(false)
+  const [editingExercise, setEditingExercise] = useState(null)
   const [dietForm, setDietForm] = useState({
     memberId: '',
     memberName: '',
@@ -138,6 +154,43 @@ export default function Admin() {
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
+  })
+  const [memberFilter, setMemberFilter] = useState('all')
+  const [memberSearch, setMemberSearch] = useState('')
+  const [classFilter, setClassFilter] = useState('all')
+  const [classSearch, setClassSearch] = useState('')
+  const [instructorFilter, setInstructorFilter] = useState('all')
+  const [instructorSearch, setInstructorSearch] = useState('')
+  const [paymentSearch, setPaymentSearch] = useState('')
+  const [postFilter, setPostFilter] = useState('all')
+  const [postSearch, setPostSearch] = useState('')
+  const [articleFilter, setArticleFilter] = useState('all')
+  const [articleSearch, setArticleSearch] = useState('')
+  const [dietFilter, setDietFilter] = useState('all')
+  const [dietSearch, setDietSearch] = useState('')
+  const [editingBooking, setEditingBooking] = useState(null)
+  const [showBookingEditModal, setShowBookingEditModal] = useState(false)
+  const [bookingEditForm, setBookingEditForm] = useState({
+    memberName: '',
+    memberEmail: '',
+    memberPhone: '',
+    status: 'pending'
+  })
+  const [smsConfig, setSmsConfig] = useState({
+    twilio: {
+      accountSid: '',
+      authToken: '',
+      fromNumber: ''
+    },
+    local: {
+      apiUrl: '',
+      apiKey: '',
+      senderId: ''
+    },
+    templates: {
+      paymentReminder: 'Hi {memberName}, your {className} payment of LKR {amount} is due for {month}. Please pay to continue classes. - Elite Sports Academy',
+      welcomeMessage: 'Welcome to Elite Sports Academy {memberName}! Your membership is confirmed. Contact us: +94771095334'
+    }
   })
   const [contactInfo, setContactInfo] = useState({
     title: 'Transform Your Limits',
@@ -208,9 +261,11 @@ export default function Admin() {
     fetchBookings()
     fetchNotifications()
     fetchDiets()
+    fetchExercises()
     fetchQuotes()
     fetchRules()
     fetchContactInfo()
+    fetchSmsConfig()
   }, [])
 
   useEffect(() => {
@@ -438,6 +493,181 @@ export default function Admin() {
     }
   }
 
+  const getFilteredMembers = () => {
+    let filteredMembers = members
+    
+    if (memberFilter && memberFilter !== 'all') {
+      if (memberFilter === 'active') {
+        filteredMembers = filteredMembers.filter(m => m.status === 'active')
+      } else if (memberFilter === 'inactive') {
+        filteredMembers = filteredMembers.filter(m => m.status !== 'active')
+      } else {
+        filteredMembers = filteredMembers.filter(m => m.membershipType === memberFilter)
+      }
+    }
+    
+    if (memberSearch) {
+      const searchTerm = memberSearch.toLowerCase()
+      filteredMembers = filteredMembers.filter(m => 
+        (m.fullName || m.name || '').toLowerCase().includes(searchTerm) ||
+        (m.email || '').toLowerCase().includes(searchTerm) ||
+        (m.memberId || '').toLowerCase().includes(searchTerm)
+      )
+    }
+    
+    return filteredMembers
+  }
+
+  const getFilteredClasses = () => {
+    let filteredClasses = classes
+    
+    if (classFilter !== 'all') {
+      filteredClasses = filteredClasses.filter(c => c.category === classFilter)
+    }
+    
+    if (classSearch) {
+      const searchTerm = classSearch.toLowerCase()
+      filteredClasses = filteredClasses.filter(c => 
+        (c.name || '').toLowerCase().includes(searchTerm) ||
+        (c.instructor || '').toLowerCase().includes(searchTerm) ||
+        (c.day || '').toLowerCase().includes(searchTerm)
+      )
+    }
+    
+    return filteredClasses
+  }
+
+  const getFilteredInstructors = () => {
+    let filteredInstructors = instructors
+    
+    if (instructorFilter && instructorFilter !== 'all') {
+      if (['crossfit', 'karate', 'zumba'].includes(instructorFilter)) {
+        filteredInstructors = filteredInstructors.filter(i => i.specialization.includes(instructorFilter))
+      } else {
+        filteredInstructors = filteredInstructors.filter(i => i.position === instructorFilter)
+      }
+    }
+    
+    if (instructorSearch) {
+      const searchTerm = instructorSearch.toLowerCase()
+      filteredInstructors = filteredInstructors.filter(i => 
+        (i.name || '').toLowerCase().includes(searchTerm) ||
+        (i.email || '').toLowerCase().includes(searchTerm) ||
+        (i.phone || '').toLowerCase().includes(searchTerm) ||
+        (i.instructorId || '').toLowerCase().includes(searchTerm)
+      )
+    }
+    
+    return filteredInstructors
+  }
+
+  const getFilteredPosts = () => {
+    let filteredPosts = posts.filter(post => post.type !== 'article')
+    
+    if (postFilter !== 'all') {
+      if (['crossfit', 'karate', 'zumba', 'general'].includes(postFilter)) {
+        filteredPosts = filteredPosts.filter(p => p.category === postFilter)
+      } else {
+        filteredPosts = filteredPosts.filter(p => p.type === postFilter)
+      }
+    }
+    
+    if (postSearch) {
+      const searchTerm = postSearch.toLowerCase()
+      filteredPosts = filteredPosts.filter(p => 
+        (p.title || '').toLowerCase().includes(searchTerm) ||
+        (p.description || '').toLowerCase().includes(searchTerm) ||
+        (p.category || '').toLowerCase().includes(searchTerm)
+      )
+    }
+    
+    return filteredPosts
+  }
+
+  const getFilteredArticles = () => {
+    let filteredArticles = posts.filter(post => post.type === 'article')
+    
+    if (articleFilter !== 'all') {
+      if (articleFilter === 'published') {
+        filteredArticles = filteredArticles.filter(a => a.isPublished)
+      } else if (articleFilter === 'draft') {
+        filteredArticles = filteredArticles.filter(a => !a.isPublished)
+      } else {
+        filteredArticles = filteredArticles.filter(a => a.category === articleFilter)
+      }
+    }
+    
+    if (articleSearch) {
+      const searchTerm = articleSearch.toLowerCase()
+      filteredArticles = filteredArticles.filter(a => 
+        (a.title || '').toLowerCase().includes(searchTerm) ||
+        (a.content || '').toLowerCase().includes(searchTerm) ||
+        (a.category || '').toLowerCase().includes(searchTerm) ||
+        (a.tags || []).some(tag => tag.toLowerCase().includes(searchTerm))
+      )
+    }
+    
+    return filteredArticles
+  }
+
+  const getFilteredDiets = () => {
+    let filteredDiets = diets
+    
+    if (dietFilter !== 'all') {
+      if (['1 week', '2 weeks', '1 month', '3 months', '6 months'].includes(dietFilter)) {
+        filteredDiets = filteredDiets.filter(d => d.duration === dietFilter)
+      } else {
+        // Filter by member
+        filteredDiets = filteredDiets.filter(d => d.memberId === dietFilter)
+      }
+    }
+    
+    if (dietSearch) {
+      const searchTerm = dietSearch.toLowerCase()
+      filteredDiets = filteredDiets.filter(d => 
+        (d.memberName || '').toLowerCase().includes(searchTerm) ||
+        (d.planName || '').toLowerCase().includes(searchTerm) ||
+        (d.description || '').toLowerCase().includes(searchTerm) ||
+        (d.duration || '').toLowerCase().includes(searchTerm)
+      )
+    }
+    
+    return filteredDiets
+  }
+
+  const getFilteredPayments = () => {
+    let filteredPayments = payments
+    
+    // Filter by class
+    if (paymentFilter !== 'all') {
+      filteredPayments = filteredPayments.filter(p => p.classId === paymentFilter)
+    }
+    
+    // Filter by status
+    if (paymentStatusFilter !== 'all') {
+      filteredPayments = filteredPayments.filter(p => (p.status || 'paid') === paymentStatusFilter)
+    }
+    
+    // Filter by month
+    if (paymentMonthFilter !== 'all') {
+      filteredPayments = filteredPayments.filter(p => p.paymentMonth === paymentMonthFilter)
+    }
+    
+    // Search filter
+    if (paymentSearch) {
+      const searchTerm = paymentSearch.toLowerCase()
+      filteredPayments = filteredPayments.filter(p => 
+        (p.memberName || '').toLowerCase().includes(searchTerm) ||
+        (p.className || '').toLowerCase().includes(searchTerm) ||
+        (p.paymentType || '').toLowerCase().includes(searchTerm) ||
+        (p.paymentMethod || '').toLowerCase().includes(searchTerm) ||
+        (p.memberId || '').toLowerCase().includes(searchTerm)
+      )
+    }
+    
+    return filteredPayments
+  }
+
   const fetchContactInfo = async () => {
     try {
       const response = await fetch('/api/contact-info')
@@ -447,6 +677,39 @@ export default function Admin() {
       }
     } catch (error) {
       console.error('Error fetching contact info:', error)
+    }
+  }
+
+  const fetchSmsConfig = async () => {
+    try {
+      const response = await fetch('/api/sms-config')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.twilio || data.local || data.templates) {
+          setSmsConfig(prev => ({ ...prev, ...data }))
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching SMS config:', error)
+    }
+  }
+
+  const saveSmsConfig = async (provider, config) => {
+    try {
+      const response = await fetch('/api/sms-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, config })
+      })
+      if (response.ok) {
+        showToast(`${provider} SMS configuration saved successfully`, 'success')
+        fetchSmsConfig()
+      } else {
+        showToast('Failed to save SMS configuration', 'error')
+      }
+    } catch (error) {
+      console.error('Error saving SMS config:', error)
+      showToast('Error saving SMS configuration', 'error')
     }
   }
 
@@ -753,6 +1016,16 @@ export default function Admin() {
     }
   }
 
+  const fetchExercises = async () => {
+    try {
+      const response = await fetch('/api/exercises')
+      const data = await response.json()
+      setExercises(data)
+    } catch (error) {
+      console.error('Error fetching exercises:', error)
+    }
+  }
+
   const handleDietSubmit = async (e) => {
     e.preventDefault()
     try {
@@ -933,6 +1206,7 @@ export default function Admin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(memberForm)
       })
+      const data = await response.json()
       if (response.ok) {
         fetchMembers()
         setShowMemberForm(false)
@@ -953,9 +1227,13 @@ export default function Admin() {
           membershipType: 'trial',
           assignedClasses: []
         })
+        showToast(editingMember ? 'Member updated successfully!' : 'Member added successfully!', 'success')
+      } else {
+        showToast(data.error || 'Error saving member', 'error')
       }
     } catch (error) {
       console.error('Error saving member:', error)
+      showToast('Error saving member', 'error')
     }
   }
 
@@ -1160,7 +1438,13 @@ export default function Admin() {
           <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ color: 'white', margin: 0 }}>Elite Sports Academy - Admin Panel</h2>
-              <div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  onClick={() => router.push('/dashboard')}
+                  style={{ background: '#28a745', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Dashboard
+                </button>
                 <button 
                   onClick={() => {
                     localStorage.removeItem('adminToken')
@@ -1322,6 +1606,19 @@ export default function Admin() {
               Diet Plans ({diets.length})
             </button>
             <button 
+              onClick={() => setActiveTab('exercises')}
+              style={{
+                backgroundColor: activeTab === 'exercises' ? '#f36100' : 'transparent',
+                color: activeTab === 'exercises' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Exercise Plans ({exercises.length})
+            </button>
+            <button 
               onClick={() => setActiveTab('quotes')}
               style={{
                 backgroundColor: activeTab === 'quotes' ? '#f36100' : 'transparent',
@@ -1346,6 +1643,19 @@ export default function Admin() {
               }}
             >
               Instructor Roles
+            </button>
+            <button 
+              onClick={() => setActiveTab('events')}
+              style={{
+                backgroundColor: activeTab === 'events' ? '#f36100' : 'transparent',
+                color: activeTab === 'events' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Events
             </button>
             <button 
               onClick={() => setActiveTab('reports')}
@@ -1411,6 +1721,27 @@ export default function Admin() {
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                       <h3 style={{ margin: 0, color: '#333' }}>Member Management</h3>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <select 
+                          value={memberFilter || 'all'}
+                          onChange={(e) => setMemberFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                        >
+                          <option value="all">All Members ({members.length})</option>
+                          <option value="active">Active ({members.filter(m => m.status === 'active').length})</option>
+                          <option value="inactive">Inactive ({members.filter(m => m.status !== 'active').length})</option>
+                          <option value="trial">Trial ({members.filter(m => m.membershipType === 'trial').length})</option>
+                          <option value="monthly">Monthly ({members.filter(m => m.membershipType === 'monthly').length})</option>
+                          <option value="yearly">Yearly ({members.filter(m => m.membershipType === 'yearly').length})</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          placeholder="Search by name, email, or registration #" 
+                          value={memberSearch || ''}
+                          onChange={(e) => setMemberSearch(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px', minWidth: '250px' }}
+                        />
+                      </div>
                       <button 
                         onClick={() => {
                           setShowMemberForm(!showMemberForm)
@@ -1632,17 +1963,18 @@ export default function Admin() {
                     ) : (
                       <>
                         <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <p style={{ margin: 0 }}><strong>Total Members: {members.length}</strong></p>
+                          <p style={{ margin: 0 }}><strong>Showing: {getFilteredMembers().length} / {members.length} Members</strong></p>
                         </div>
-                        {members.length === 0 ? (
+                        {getFilteredMembers().length === 0 ? (
                           <div style={{ textAlign: 'center', padding: '50px', color: '#666' }}>
-                            <p>No members registered yet.</p>
+                            <p>{members.length === 0 ? 'No members registered yet.' : 'No members found matching your search.'}</p>
                           </div>
                         ) : (
                           <div className="table-responsive">
                             <table className="table table-striped">
                               <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
                                 <tr>
+                                  <th>Registration #</th>
                                   <th>Member</th>
                                   <th>Contact</th>
                                   <th>Physical Info</th>
@@ -1652,8 +1984,16 @@ export default function Admin() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {members.map((member) => (
+                                {getFilteredMembers().map((member) => (
                                   <tr key={member._id}>
+                                    <td>
+                                      <div style={{fontSize: '12px', fontWeight: '600', color: '#f36100'}}>
+                                        {member.memberId || 'N/A'}
+                                      </div>
+                                      <div style={{fontSize: '10px', color: '#666'}}>
+                                        {new Date(member.joinDate).toLocaleDateString()}
+                                      </div>
+                                    </td>
                                     <td>
                                       <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
                                         {member.profilePicture ? (
@@ -1769,6 +2109,25 @@ export default function Admin() {
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                       <h3 style={{ margin: 0, color: '#333' }}>Classes Management</h3>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <select 
+                          value={classFilter}
+                          onChange={(e) => setClassFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                        >
+                          <option value="all">All Classes ({classes.length})</option>
+                          <option value="crossfit">CrossFit ({classes.filter(c => c.category === 'crossfit').length})</option>
+                          <option value="karate">Karate ({classes.filter(c => c.category === 'karate').length})</option>
+                          <option value="zumba">Zumba ({classes.filter(c => c.category === 'zumba').length})</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          placeholder="Search by name, instructor, or day" 
+                          value={classSearch}
+                          onChange={(e) => setClassSearch(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px', minWidth: '200px' }}
+                        />
+                      </div>
                       <button 
                         onClick={() => {
                           setShowClassForm(!showClassForm)
@@ -1967,6 +2326,10 @@ export default function Admin() {
                       </form>
                     )}
 
+                    <div style={{ marginBottom: '20px' }}>
+                      <p style={{ margin: 0 }}><strong>Showing: {getFilteredClasses().length} / {classes.length} Classes</strong></p>
+                    </div>
+
                     <div className="table-responsive">
                       <table className="table table-striped">
                         <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
@@ -1983,7 +2346,7 @@ export default function Admin() {
                           </tr>
                         </thead>
                         <tbody>
-                          {classes.map((cls) => (
+                          {getFilteredClasses().map((cls) => (
                             <tr key={cls._id}>
                               <td>{cls.name}</td>
                               <td>
@@ -2048,6 +2411,30 @@ export default function Admin() {
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                       <h3 style={{ margin: 0, color: '#333' }}>Instructors Management</h3>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <select 
+                          value={instructorFilter}
+                          onChange={(e) => setInstructorFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                        >
+                          <option value="all">All Instructors ({instructors.length})</option>
+                          <option value="crossfit">CrossFit ({instructors.filter(i => i.specialization.includes('crossfit')).length})</option>
+                          <option value="karate">Karate ({instructors.filter(i => i.specialization.includes('karate')).length})</option>
+                          <option value="zumba">Zumba ({instructors.filter(i => i.specialization.includes('zumba')).length})</option>
+                          <option value="instructor">Instructor ({instructors.filter(i => i.position === 'instructor').length})</option>
+                          <option value="senior_instructor">Senior Instructor ({instructors.filter(i => i.position === 'senior_instructor').length})</option>
+                          <option value="chief_instructor">Chief Instructor ({instructors.filter(i => i.position === 'chief_instructor').length})</option>
+                          <option value="head_trainer">Head Trainer ({instructors.filter(i => i.position === 'head_trainer').length})</option>
+                          <option value="ceo">CEO ({instructors.filter(i => i.position === 'ceo').length})</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          placeholder="Search by name, email, phone, or registration #" 
+                          value={instructorSearch}
+                          onChange={(e) => setInstructorSearch(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px', minWidth: '250px' }}
+                        />
+                      </div>
                       <button 
                         onClick={() => {
                           setShowInstructorForm(!showInstructorForm)
@@ -2079,6 +2466,12 @@ export default function Admin() {
 
                     {showInstructorForm && (
                       <form onSubmit={handleInstructorSubmit} style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '5px', marginBottom: '30px' }}>
+                        {!editingInstructor && (
+                          <div style={{ backgroundColor: '#d1ecf1', border: '1px solid #bee5eb', borderRadius: '4px', padding: '10px', marginBottom: '15px', fontSize: '14px', color: '#0c5460' }}>
+                            <i className="fas fa-info-circle" style={{ marginRight: '8px' }}></i>
+                            A unique registration number with prefix "EL00" will be automatically assigned to this instructor.
+                          </div>
+                        )}
                         <div className="row">
                           <div className="col-md-6">
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Full Name *</label>
@@ -2250,109 +2643,154 @@ export default function Admin() {
                       </form>
                     )}
 
-                    <div className="table-responsive">
-                      <table className="table table-striped">
-                        <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
-                          <tr>
-                            <th>Name</th>
-                            <th>Contact</th>
-                            <th>Position</th>
-                            <th>Specialization</th>
-                            <th>Experience</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {instructors.map((instructor) => (
-                            <tr key={instructor._id}>
-                              <td>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                                  {instructor.image ? (
-                                    <img 
-                                      src={instructor.image} 
-                                      alt={instructor.name}
-                                      style={{width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover'}}
-                                    />
-                                  ) : (
-                                    <div style={{width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, #f36100, #ff8c42)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '16px', fontWeight: '600'}}>
-                                      {instructor.name.charAt(0)}
-                                    </div>
-                                  )}
-                                  <div>
-                                    <strong>{instructor.name}</strong>
-                                    {instructor.bio && <div style={{fontSize: '12px', color: '#666'}}>{instructor.bio.substring(0, 30)}...</div>}
+                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <p style={{ margin: 0 }}><strong>Showing: {getFilteredInstructors().length} / {instructors.length} Instructors</strong></p>
+                      <button 
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/instructors/migrate-ids', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' }
+                            })
+                            const data = await response.json()
+                            showToast(data.message, 'success')
+                            fetchInstructors() // Refresh the list
+                          } catch (error) {
+                            showToast('Error assigning registration numbers', 'error')
+                          }
+                        }}
+                        style={{
+                          backgroundColor: '#17a2b8',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        Assign Registration Numbers
+                      </button>
+                    </div>
+
+                    {getFilteredInstructors().length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '50px', color: '#666' }}>
+                        <p>{instructors.length === 0 ? 'No instructors added yet.' : 'No instructors found matching your search.'}</p>
+                      </div>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="table table-striped">
+                          <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                            <tr>
+                              <th>Registration #</th>
+                              <th>Name</th>
+                              <th>Contact</th>
+                              <th>Position</th>
+                              <th>Specialization</th>
+                              <th>Experience</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getFilteredInstructors().map((instructor) => (
+                              <tr key={instructor._id}>
+                                <td>
+                                  <div style={{fontSize: '12px', fontWeight: '600', color: '#f36100'}}>
+                                    {instructor.instructorId || 'N/A'}
                                   </div>
-                                </div>
-                              </td>
-                              <td>
-                                <div style={{fontSize: '12px'}}>{instructor.email}</div>
-                                <div style={{fontSize: '12px'}}>{instructor.phone}</div>
-                              </td>
-                              <td>
-                                <span style={{ 
-                                  backgroundColor: instructor.position === 'ceo' ? '#dc3545' : instructor.position === 'chief_instructor' ? '#fd7e14' : instructor.position === 'head_trainer' ? '#6f42c1' : instructor.position === 'senior_instructor' ? '#20c997' : '#6c757d',
-                                  color: 'white',
-                                  padding: '4px 8px',
-                                  borderRadius: '12px',
-                                  fontSize: '11px',
-                                  textTransform: 'uppercase'
-                                }}>
-                                  {instructor.position?.replace('_', ' ') || 'instructor'}
-                                </span>
-                              </td>
-                              <td>
-                                {instructor.specialization.map(spec => (
-                                  <span key={spec} style={{ 
-                                    backgroundColor: spec === 'crossfit' ? '#ff5722' : spec === 'karate' ? '#2196f3' : '#9c27b0',
+                                  <div style={{fontSize: '10px', color: '#666'}}>
+                                    {new Date(instructor.createdAt).toLocaleDateString()}
+                                  </div>
+                                </td>
+                                <td>
+                                  <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                    {instructor.image ? (
+                                      <img 
+                                        src={instructor.image} 
+                                        alt={instructor.name}
+                                        style={{width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover'}}
+                                      />
+                                    ) : (
+                                      <div style={{width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, #f36100, #ff8c42)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '16px', fontWeight: '600'}}>
+                                        {instructor.name.charAt(0)}
+                                      </div>
+                                    )}
+                                    <div>
+                                      <strong>{instructor.name}</strong>
+                                      {instructor.bio && <div style={{fontSize: '12px', color: '#666'}}>{instructor.bio.substring(0, 30)}...</div>}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>
+                                  <div style={{fontSize: '12px'}}>{instructor.email}</div>
+                                  <div style={{fontSize: '12px'}}>{instructor.phone}</div>
+                                </td>
+                                <td>
+                                  <span style={{ 
+                                    backgroundColor: instructor.position === 'ceo' ? '#dc3545' : instructor.position === 'chief_instructor' ? '#fd7e14' : instructor.position === 'head_trainer' ? '#6f42c1' : instructor.position === 'senior_instructor' ? '#20c997' : '#6c757d',
                                     color: 'white',
-                                    padding: '2px 6px',
-                                    borderRadius: '10px',
-                                    fontSize: '10px',
-                                    marginRight: '3px',
+                                    padding: '4px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '11px',
                                     textTransform: 'uppercase'
                                   }}>
-                                    {spec}
+                                    {instructor.position?.replace('_', ' ') || 'instructor'}
                                   </span>
-                                ))}
-                              </td>
-                              <td>{instructor.experience} years</td>
-                              <td>
-                                <div style={{ display: 'flex', gap: '5px' }}>
-                                  <button 
-                                    onClick={() => editInstructor(instructor)}
-                                    style={{
-                                      backgroundColor: '#28a745',
+                                </td>
+                                <td>
+                                  {instructor.specialization.map(spec => (
+                                    <span key={spec} style={{ 
+                                      backgroundColor: spec === 'crossfit' ? '#ff5722' : spec === 'karate' ? '#2196f3' : '#9c27b0',
                                       color: 'white',
-                                      border: 'none',
-                                      padding: '5px 10px',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer',
-                                      fontSize: '12px'
-                                    }}
-                                  >
-                                    Edit
-                                  </button>
-                                  <button 
-                                    onClick={() => deleteInstructor(instructor._id)}
-                                    style={{
-                                      backgroundColor: '#dc3545',
-                                      color: 'white',
-                                      border: 'none',
-                                      padding: '5px 10px',
-                                      borderRadius: '4px',
-                                      cursor: 'pointer',
-                                      fontSize: '12px'
-                                    }}
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                                      padding: '2px 6px',
+                                      borderRadius: '10px',
+                                      fontSize: '10px',
+                                      marginRight: '3px',
+                                      textTransform: 'uppercase'
+                                    }}>
+                                      {spec}
+                                    </span>
+                                  ))}
+                                </td>
+                                <td>{instructor.experience} years</td>
+                                <td>
+                                  <div style={{ display: 'flex', gap: '5px' }}>
+                                    <button 
+                                      onClick={() => editInstructor(instructor)}
+                                      style={{
+                                        backgroundColor: '#28a745',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '5px 10px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button 
+                                      onClick={() => deleteInstructor(instructor._id)}
+                                      style={{
+                                        backgroundColor: '#dc3545',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '5px 10px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -2360,7 +2798,7 @@ export default function Admin() {
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                       <h3 style={{ margin: 0, color: '#333' }}>Payment Management</h3>
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <select 
                           value={paymentFilter}
                           onChange={(e) => setPaymentFilter(e.target.value)}
@@ -2373,34 +2811,63 @@ export default function Admin() {
                             </option>
                           ))}
                         </select>
-                        <button 
-                          onClick={() => {
-                            setShowPaymentForm(!showPaymentForm)
-                            setEditingPayment(null)
-                            setPaymentForm({
-                              memberId: '',
-                              memberName: '',
-                              classId: '',
-                              className: '',
-                              paymentType: 'monthly',
-                              amount: 0,
-                              paymentMethod: 'cash',
-                              paymentMonth: new Date().toISOString().slice(0, 7),
-                              notes: ''
-                            })
-                          }}
-                          style={{
-                            backgroundColor: '#f36100',
-                            color: 'white',
-                            border: 'none',
-                            padding: '10px 20px',
-                            borderRadius: '5px',
-                            cursor: 'pointer'
-                          }}
+                        <select 
+                          value={paymentStatusFilter}
+                          onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
                         >
-                          {showPaymentForm ? 'Cancel' : 'Add Payment'}
-                        </button>
+                          <option value="all">All Status ({payments.length})</option>
+                          <option value="paid">Paid ({payments.filter(p => (p.status || 'paid') === 'paid').length})</option>
+                          <option value="pending">Pending ({payments.filter(p => p.status === 'pending').length})</option>
+                          <option value="overdue">Overdue ({payments.filter(p => p.status === 'overdue').length})</option>
+                        </select>
+                        <select 
+                          value={paymentMonthFilter}
+                          onChange={(e) => setPaymentMonthFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                        >
+                          <option value="all">All Months</option>
+                          {[...new Set(payments.map(p => p.paymentMonth).filter(Boolean))].sort().reverse().map(month => (
+                            <option key={month} value={month}>
+                              {month} ({payments.filter(p => p.paymentMonth === month).length})
+                            </option>
+                          ))}
+                        </select>
+                        <input 
+                          type="text" 
+                          placeholder="Search by member, class, type, method, or ID" 
+                          value={paymentSearch}
+                          onChange={(e) => setPaymentSearch(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px', minWidth: '250px' }}
+                        />
                       </div>
+                      <button 
+                        onClick={() => {
+                          setShowPaymentForm(!showPaymentForm)
+                          setEditingPayment(null)
+                          setPaymentForm({
+                            memberId: '',
+                            memberName: '',
+                            classId: '',
+                            className: '',
+                            paymentType: 'monthly',
+                            amount: 0,
+                            paymentMethod: 'cash',
+                            paymentMonth: new Date().toISOString().slice(0, 7),
+                            notes: ''
+                          })
+                        }}
+                        style={{
+                          backgroundColor: '#f36100',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px 20px',
+                          borderRadius: '5px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {showPaymentForm ? 'Cancel' : 'Add Payment'}
+                      </button>
                     </div>
                     {showPaymentForm && (
                       <form onSubmit={handlePaymentSubmit} style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '5px', marginBottom: '30px' }}>
@@ -2411,7 +2878,7 @@ export default function Admin() {
                             value={paymentForm.memberId}
                             onChange={(e) => {
                               const member = members.find(m => m._id === e.target.value)
-                              setPaymentForm({...paymentForm, memberId: e.target.value, memberName: member?.fullName || ''})
+                              setPaymentForm({...paymentForm, memberId: e.target.value, memberName: member?.fullName || '', classId: '', className: ''})
                             }}
                             required
                             style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
@@ -2426,15 +2893,44 @@ export default function Admin() {
                             value={paymentForm.classId}
                             onChange={(e) => {
                               const cls = classes.find(c => c._id === e.target.value)
-                              setPaymentForm({...paymentForm, classId: e.target.value, className: cls?.name || ''})
+                              const selectedMember = members.find(m => m._id === paymentForm.memberId)
+                              let paymentType = 'monthly'
+                              let amount = 0
+                              
+                              if (cls && selectedMember) {
+                                // Auto-assign payment type based on membership type
+                                if (selectedMember.membershipType === 'trial') {
+                                  paymentType = 'admission'
+                                  amount = cls.admissionFee || 0
+                                } else if (selectedMember.membershipType === 'yearly') {
+                                  paymentType = 'annually'
+                                  amount = cls.fees?.annually || 0
+                                } else {
+                                  paymentType = 'monthly'
+                                  amount = cls.fees?.monthly || 0
+                                }
+                              }
+                              
+                              setPaymentForm({...paymentForm, classId: e.target.value, className: cls?.name || '', paymentType, amount})
                             }}
                             required
                             style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
                           >
                             <option value="">Select Class</option>
-                            {classes.map(cls => (
-                              <option key={cls._id} value={cls._id}>{cls.name}</option>
-                            ))}
+                            {paymentForm.memberId ? (
+                              (() => {
+                                const selectedMember = members.find(m => m._id === paymentForm.memberId)
+                                const memberClasses = selectedMember?.assignedClasses || []
+                                return memberClasses.length > 0 ? 
+                                  memberClasses.map(classId => {
+                                    const cls = classes.find(c => c._id === classId)
+                                    return cls ? <option key={cls._id} value={cls._id}>{cls.name}</option> : null
+                                  }) : 
+                                  classes.map(cls => <option key={cls._id} value={cls._id}>{cls.name}</option>)
+                              })()
+                            ) : (
+                              classes.map(cls => <option key={cls._id} value={cls._id}>{cls.name}</option>)
+                            )}
                           </select>
                           <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Payment Type *</label>
                           <select 
@@ -2565,6 +3061,32 @@ export default function Admin() {
                         </div>
                       )}
                     </div>
+                    
+                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <p style={{ margin: 0 }}><strong>Showing: {getFilteredPayments().length} / {payments.length} Payments</strong></p>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button 
+                          onClick={() => {
+                            setPaymentFilter('all')
+                            setPaymentStatusFilter('all')
+                            setPaymentMonthFilter('all')
+                            setPaymentSearch('')
+                          }}
+                          style={{
+                            backgroundColor: '#6c757d',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Clear Filters
+                        </button>
+                      </div>
+                    </div>
+                    
                     <div className="table-responsive">
                       <table className="table table-striped">
                         <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
@@ -2581,7 +3103,7 @@ export default function Admin() {
                           </tr>
                         </thead>
                         <tbody>
-                          {(paymentFilter === 'all' ? payments : payments.filter(p => p.classId === paymentFilter)).map((payment) => (
+                          {getFilteredPayments().map((payment) => (
                             <tr key={payment._id}>
                               <td>{payment.memberName}</td>
                               <td>{payment.className}</td>
@@ -2822,6 +3344,8 @@ export default function Admin() {
                             <input 
                               type="text" 
                               placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 
+                              value={smsConfig.twilio.accountSid}
+                              onChange={(e) => setSmsConfig({...smsConfig, twilio: {...smsConfig.twilio, accountSid: e.target.value}})}
                               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                           </div>
@@ -2830,6 +3354,8 @@ export default function Admin() {
                             <input 
                               type="password" 
                               placeholder="Your Twilio Auth Token" 
+                              value={smsConfig.twilio.authToken}
+                              onChange={(e) => setSmsConfig({...smsConfig, twilio: {...smsConfig.twilio, authToken: e.target.value}})}
                               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                           </div>
@@ -2838,10 +3364,15 @@ export default function Admin() {
                             <input 
                               type="text" 
                               placeholder="+1234567890" 
+                              value={smsConfig.twilio.fromNumber}
+                              onChange={(e) => setSmsConfig({...smsConfig, twilio: {...smsConfig.twilio, fromNumber: e.target.value}})}
                               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                           </div>
-                          <button style={{ backgroundColor: '#f22f46', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}>
+                          <button 
+                            onClick={() => saveSmsConfig('twilio', smsConfig.twilio)}
+                            style={{ backgroundColor: '#f22f46', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
+                          >
                             Save Twilio Config
                           </button>
                         </div>
@@ -2854,6 +3385,8 @@ export default function Admin() {
                             <input 
                               type="text" 
                               placeholder="https://api.localsms.lk/send" 
+                              value={smsConfig.local.apiUrl}
+                              onChange={(e) => setSmsConfig({...smsConfig, local: {...smsConfig.local, apiUrl: e.target.value}})}
                               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                           </div>
@@ -2862,6 +3395,8 @@ export default function Admin() {
                             <input 
                               type="password" 
                               placeholder="Your API Key" 
+                              value={smsConfig.local.apiKey}
+                              onChange={(e) => setSmsConfig({...smsConfig, local: {...smsConfig.local, apiKey: e.target.value}})}
                               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                           </div>
@@ -2870,10 +3405,15 @@ export default function Admin() {
                             <input 
                               type="text" 
                               placeholder="ELITE_GYM" 
+                              value={smsConfig.local.senderId}
+                              onChange={(e) => setSmsConfig({...smsConfig, local: {...smsConfig.local, senderId: e.target.value}})}
                               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                             />
                           </div>
-                          <button style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}>
+                          <button 
+                            onClick={() => saveSmsConfig('local', smsConfig.local)}
+                            style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
+                          >
                             Save Local Config
                           </button>
                         </div>
@@ -2885,6 +3425,8 @@ export default function Admin() {
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Payment Reminder Template:</label>
                         <textarea 
                           placeholder="Hi {memberName}, your {className} payment of LKR {amount} is due for {month}. Please pay to continue classes. - Elite Sports Academy" 
+                          value={smsConfig.templates.paymentReminder}
+                          onChange={(e) => setSmsConfig({...smsConfig, templates: {...smsConfig.templates, paymentReminder: e.target.value}})}
                           style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', height: '80px' }}
                         />
                       </div>
@@ -2892,14 +3434,34 @@ export default function Admin() {
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Welcome Message Template:</label>
                         <textarea 
                           placeholder="Welcome to Elite Sports Academy {memberName}! Your membership is confirmed. Contact us: +94771095334" 
+                          value={smsConfig.templates.welcomeMessage}
+                          onChange={(e) => setSmsConfig({...smsConfig, templates: {...smsConfig.templates, welcomeMessage: e.target.value}})}
                           style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', height: '60px' }}
                         />
                       </div>
                       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        <button style={{ backgroundColor: '#2196f3', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>
+                        <button 
+                          onClick={() => saveSmsConfig('templates', smsConfig.templates)}
+                          style={{ backgroundColor: '#2196f3', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}
+                        >
                           Save Templates
                         </button>
-                        <button style={{ backgroundColor: '#ff9800', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>
+                        <button 
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/test-sms', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ phone: '+94771095334', message: 'Test SMS from Elite Sports Academy' })
+                              })
+                              const data = await response.json()
+                              showToast(data.message || 'Test SMS sent', response.ok ? 'success' : 'error')
+                            } catch (error) {
+                              showToast('Failed to send test SMS', 'error')
+                            }
+                          }}
+                          style={{ backgroundColor: '#ff9800', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}
+                        >
                           Test SMS
                         </button>
                         <button style={{ backgroundColor: '#9c27b0', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>
@@ -2914,6 +3476,29 @@ export default function Admin() {
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                       <h3 style={{ margin: 0, color: '#333' }}>Video Posts Management</h3>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <select 
+                          value={postFilter}
+                          onChange={(e) => setPostFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                        >
+                          <option value="all">All Posts ({posts.filter(p => p.type !== 'article').length})</option>
+                          <option value="crossfit">CrossFit ({posts.filter(p => p.category === 'crossfit' && p.type !== 'article').length})</option>
+                          <option value="karate">Karate ({posts.filter(p => p.category === 'karate' && p.type !== 'article').length})</option>
+                          <option value="zumba">Zumba ({posts.filter(p => p.category === 'zumba' && p.type !== 'article').length})</option>
+                          <option value="general">General ({posts.filter(p => p.category === 'general' && p.type !== 'article').length})</option>
+                          <option value="normal">Normal ({posts.filter(p => p.type === 'normal').length})</option>
+                          <option value="trending">Trending ({posts.filter(p => p.type === 'trending').length})</option>
+                          <option value="featured">Featured ({posts.filter(p => p.type === 'featured').length})</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          placeholder="Search by title, description, or category" 
+                          value={postSearch}
+                          onChange={(e) => setPostSearch(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px', minWidth: '250px' }}
+                        />
+                      </div>
                       <button 
                         onClick={() => {
                           setShowPostForm(!showPostForm)
@@ -2992,6 +3577,28 @@ export default function Admin() {
                         </button>
                       </form>
                     )}
+                    
+                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <p style={{ margin: 0 }}><strong>Showing: {getFilteredPosts().length} / {posts.filter(p => p.type !== 'article').length} Video Posts</strong></p>
+                      <button 
+                        onClick={() => {
+                          setPostFilter('all')
+                          setPostSearch('')
+                        }}
+                        style={{
+                          backgroundColor: '#6c757d',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        Clear Filters
+                      </button>
+                    </div>
+                    
                     <div className="table-responsive">
                       <table className="table table-striped">
                         <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
@@ -3005,7 +3612,7 @@ export default function Admin() {
                           </tr>
                         </thead>
                         <tbody>
-                          {posts.filter(post => post.type !== 'article').map((post) => (
+                          {getFilteredPosts().map((post) => (
                             <tr key={post._id}>
                               <td>{post.title}</td>
                               <td>
@@ -3087,6 +3694,7 @@ export default function Admin() {
                             <th>Contact</th>
                             <th>Booking Date</th>
                             <th>Status</th>
+                            <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -3114,11 +3722,201 @@ export default function Admin() {
                                   {booking.status}
                                 </span>
                               </td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                  {booking.status === 'pending' && (
+                                    <>
+                                      <button 
+                                        onClick={async () => {
+                                          try {
+                                            await fetch(`/api/bookings/${booking._id}`, {
+                                              method: 'PUT',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ status: 'confirmed' })
+                                            })
+                                            fetchBookings()
+                                            showToast('Booking approved successfully', 'success')
+                                          } catch (error) {
+                                            showToast('Failed to approve booking', 'error')
+                                          }
+                                        }}
+                                        style={{
+                                          backgroundColor: '#28a745',
+                                          color: 'white',
+                                          border: 'none',
+                                          padding: '4px 8px',
+                                          borderRadius: '3px',
+                                          cursor: 'pointer',
+                                          fontSize: '11px'
+                                        }}
+                                      >
+                                        Approve
+                                      </button>
+                                      <button 
+                                        onClick={async () => {
+                                          try {
+                                            await fetch(`/api/bookings/${booking._id}`, {
+                                              method: 'PUT',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ status: 'cancelled' })
+                                            })
+                                            fetchBookings()
+                                            showToast('Booking rejected successfully', 'success')
+                                          } catch (error) {
+                                            showToast('Failed to reject booking', 'error')
+                                          }
+                                        }}
+                                        style={{
+                                          backgroundColor: '#dc3545',
+                                          color: 'white',
+                                          border: 'none',
+                                          padding: '4px 8px',
+                                          borderRadius: '3px',
+                                          cursor: 'pointer',
+                                          fontSize: '11px'
+                                        }}
+                                      >
+                                        Reject
+                                      </button>
+                                    </>
+                                  )}
+                                  <button 
+                                    onClick={() => {
+                                      setEditingBooking(booking)
+                                      setBookingEditForm({
+                                        memberName: booking.memberName,
+                                        memberEmail: booking.memberEmail,
+                                        memberPhone: booking.memberPhone,
+                                        status: booking.status
+                                      })
+                                      setShowBookingEditModal(true)
+                                    }}
+                                    style={{
+                                      backgroundColor: '#17a2b8',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '4px 8px',
+                                      borderRadius: '3px',
+                                      cursor: 'pointer',
+                                      fontSize: '11px'
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={async () => {
+                                      if (confirm('Are you sure you want to delete this booking?')) {
+                                        try {
+                                          await fetch(`/api/bookings/${booking._id}`, { method: 'DELETE' })
+                                          fetchBookings()
+                                          showToast('Booking deleted successfully', 'success')
+                                        } catch (error) {
+                                          showToast('Failed to delete booking', 'error')
+                                        }
+                                      }
+                                    }}
+                                    style={{
+                                      backgroundColor: '#6c757d',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '4px 8px',
+                                      borderRadius: '3px',
+                                      cursor: 'pointer',
+                                      fontSize: '11px'
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
+                    
+                    {/* Booking Edit Modal */}
+                    {showBookingEditModal && (
+                      <div style={{
+                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                        backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', zIndex: 9999
+                      }}>
+                        <div style={{
+                          backgroundColor: 'white', borderRadius: '15px', padding: '30px',
+                          maxWidth: '500px', width: '90%'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 style={{ margin: 0, color: '#333' }}>Edit Booking</h3>
+                            <button onClick={() => setShowBookingEditModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#666' }}>×</button>
+                          </div>
+                          
+                          <form onSubmit={async (e) => {
+                            e.preventDefault()
+                            try {
+                              await fetch(`/api/bookings/${editingBooking._id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(bookingEditForm)
+                              })
+                              fetchBookings()
+                              setShowBookingEditModal(false)
+                              showToast('Booking updated successfully', 'success')
+                            } catch (error) {
+                              showToast('Failed to update booking', 'error')
+                            }
+                          }}>
+                            <div style={{ marginBottom: '15px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Member Name</label>
+                              <input 
+                                type="text" 
+                                value={bookingEditForm.memberName}
+                                onChange={(e) => setBookingEditForm({...bookingEditForm, memberName: e.target.value})}
+                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              />
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Email</label>
+                              <input 
+                                type="email" 
+                                value={bookingEditForm.memberEmail}
+                                onChange={(e) => setBookingEditForm({...bookingEditForm, memberEmail: e.target.value})}
+                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              />
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Phone</label>
+                              <input 
+                                type="tel" 
+                                value={bookingEditForm.memberPhone}
+                                onChange={(e) => setBookingEditForm({...bookingEditForm, memberPhone: e.target.value})}
+                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              />
+                            </div>
+                            <div style={{ marginBottom: '20px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Status</label>
+                              <select 
+                                value={bookingEditForm.status}
+                                onChange={(e) => setBookingEditForm({...bookingEditForm, status: e.target.value})}
+                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                              <button type="submit" style={{ flex: 1, padding: '10px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                                Update Booking
+                              </button>
+                              <button type="button" onClick={() => setShowBookingEditModal(false)} style={{ flex: 1, padding: '10px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -3229,6 +4027,32 @@ export default function Admin() {
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                       <h3 style={{ margin: 0, color: '#333' }}>Article Management</h3>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <select 
+                          value={articleFilter}
+                          onChange={(e) => setArticleFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                        >
+                          <option value="all">All Articles ({posts.filter(p => p.type === 'article').length})</option>
+                          <option value="published">Published ({posts.filter(p => p.type === 'article' && p.isPublished).length})</option>
+                          <option value="draft">Draft ({posts.filter(p => p.type === 'article' && !p.isPublished).length})</option>
+                          <option value="general">General ({posts.filter(p => p.type === 'article' && p.category === 'general').length})</option>
+                          <option value="fitness">Fitness ({posts.filter(p => p.type === 'article' && p.category === 'fitness').length})</option>
+                          <option value="nutrition">Nutrition ({posts.filter(p => p.type === 'article' && p.category === 'nutrition').length})</option>
+                          <option value="crossfit">CrossFit ({posts.filter(p => p.type === 'article' && p.category === 'crossfit').length})</option>
+                          <option value="karate">Karate ({posts.filter(p => p.type === 'article' && p.category === 'karate').length})</option>
+                          <option value="zumba">Zumba ({posts.filter(p => p.type === 'article' && p.category === 'zumba').length})</option>
+                          <option value="health">Health ({posts.filter(p => p.type === 'article' && p.category === 'health').length})</option>
+                          <option value="lifestyle">Lifestyle ({posts.filter(p => p.type === 'article' && p.category === 'lifestyle').length})</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          placeholder="Search by title, content, category, or tags" 
+                          value={articleSearch}
+                          onChange={(e) => setArticleSearch(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px', minWidth: '250px' }}
+                        />
+                      </div>
                       <button 
                         onClick={() => {
                           setShowArticleForm(!showArticleForm)
@@ -3382,6 +4206,28 @@ export default function Admin() {
                         </button>
                       </form>
                     )}
+                    
+                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <p style={{ margin: 0 }}><strong>Showing: {getFilteredArticles().length} / {posts.filter(p => p.type === 'article').length} Articles</strong></p>
+                      <button 
+                        onClick={() => {
+                          setArticleFilter('all')
+                          setArticleSearch('')
+                        }}
+                        style={{
+                          backgroundColor: '#6c757d',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        Clear Filters
+                      </button>
+                    </div>
+                    
                     <div className="table-responsive">
                       <table className="table table-striped">
                         <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
@@ -3395,7 +4241,7 @@ export default function Admin() {
                           </tr>
                         </thead>
                         <tbody>
-                          {posts.filter(post => post.type === 'article').map((article) => (
+                          {getFilteredArticles().map((article) => (
                             <tr key={article._id}>
                               <td>
                                 <div>
@@ -3491,6 +4337,32 @@ export default function Admin() {
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                       <h3 style={{ margin: 0, color: '#333' }}>Diet Plan Management</h3>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <select 
+                          value={dietFilter}
+                          onChange={(e) => setDietFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                        >
+                          <option value="all">All Diet Plans ({diets.length})</option>
+                          {members.map(member => (
+                            <option key={member._id} value={member._id}>
+                              {member.fullName || member.name} ({diets.filter(d => d.memberId === member._id).length})
+                            </option>
+                          ))}
+                          <option value="1 week">1 Week ({diets.filter(d => d.duration === '1 week').length})</option>
+                          <option value="2 weeks">2 Weeks ({diets.filter(d => d.duration === '2 weeks').length})</option>
+                          <option value="1 month">1 Month ({diets.filter(d => d.duration === '1 month').length})</option>
+                          <option value="3 months">3 Months ({diets.filter(d => d.duration === '3 months').length})</option>
+                          <option value="6 months">6 Months ({diets.filter(d => d.duration === '6 months').length})</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          placeholder="Search by member, plan name, or duration" 
+                          value={dietSearch}
+                          onChange={(e) => setDietSearch(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px', minWidth: '250px' }}
+                        />
+                      </div>
                       <button 
                         onClick={() => {
                           setShowDietForm(!showDietForm)
@@ -4244,6 +5116,290 @@ export default function Admin() {
                   </>
                 )}
 
+                {activeTab === 'exercises' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Exercise Plans</h3>
+                      <button 
+                        onClick={() => {
+                          setShowExerciseForm(!showExerciseForm)
+                          setEditingExercise(null)
+                          setExerciseForm({
+                            memberId: '', memberName: '', planName: '', description: '',
+                            exercises: [{ name: '', sets: '', reps: '', weight: '', rest: '' }],
+                            duration: '', difficulty: 'beginner', notes: ''
+                          })
+                        }}
+                        style={{ backgroundColor: '#f36100', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer' }}
+                      >
+                        {showExerciseForm ? 'Cancel' : 'Assign Exercise Plan'}
+                      </button>
+                    </div>
+                    
+                    {showExerciseForm && (
+                      <form onSubmit={async (e) => {
+                        e.preventDefault()
+                        try {
+                          const url = editingExercise ? `/api/exercises/${editingExercise._id}` : '/api/exercises'
+                          const method = editingExercise ? 'PUT' : 'POST'
+                          const response = await fetch(url, {
+                            method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(exerciseForm)
+                          })
+                          if (response.ok) {
+                            fetchExercises()
+                            setShowExerciseForm(false)
+                            setEditingExercise(null)
+                            showToast(editingExercise ? 'Exercise plan updated!' : 'Exercise plan assigned!', 'success')
+                          }
+                        } catch (error) {
+                          showToast('Error saving exercise plan', 'error')
+                        }
+                      }} style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '5px', marginBottom: '30px' }}>
+                        <div className="row">
+                          <div className="col-md-6">
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Member *</label>
+                            <select 
+                              value={exerciseForm.memberId}
+                              onChange={(e) => {
+                                const member = members.find(m => m._id === e.target.value)
+                                setExerciseForm({...exerciseForm, memberId: e.target.value, memberName: member?.fullName || ''})
+                              }}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            >
+                              <option value="">Select Member</option>
+                              {members.map(member => (
+                                <option key={member._id} value={member._id}>{member.fullName || member.name}</option>
+                              ))}
+                            </select>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Plan Name *</label>
+                            <input 
+                              type="text" 
+                              placeholder="Enter plan name" 
+                              value={exerciseForm.planName}
+                              onChange={(e) => setExerciseForm({...exerciseForm, planName: e.target.value})}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Duration</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g., 4 weeks" 
+                              value={exerciseForm.duration}
+                              onChange={(e) => setExerciseForm({...exerciseForm, duration: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Difficulty</label>
+                            <select 
+                              value={exerciseForm.difficulty}
+                              onChange={(e) => setExerciseForm({...exerciseForm, difficulty: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            >
+                              <option value="beginner">Beginner</option>
+                              <option value="intermediate">Intermediate</option>
+                              <option value="advanced">Advanced</option>
+                            </select>
+                          </div>
+                          <div className="col-md-6">
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Description</label>
+                            <textarea 
+                              placeholder="Plan description" 
+                              value={exerciseForm.description}
+                              onChange={(e) => setExerciseForm({...exerciseForm, description: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px', height: '80px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Notes</label>
+                            <textarea 
+                              placeholder="Additional notes" 
+                              value={exerciseForm.notes}
+                              onChange={(e) => setExerciseForm({...exerciseForm, notes: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px', height: '60px' }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div style={{ marginBottom: '15px' }}>
+                          <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600' }}>Exercises:</label>
+                          {exerciseForm.exercises.map((exercise, index) => (
+                            <div key={index} style={{ backgroundColor: 'white', padding: '15px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ddd' }}>
+                              <div className="row">
+                                <div className="col-md-3">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Exercise name" 
+                                    value={exercise.name}
+                                    onChange={(e) => {
+                                      const newExercises = [...exerciseForm.exercises]
+                                      newExercises[index].name = e.target.value
+                                      setExerciseForm({...exerciseForm, exercises: newExercises})
+                                    }}
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '5px' }}
+                                  />
+                                </div>
+                                <div className="col-md-2">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Sets" 
+                                    value={exercise.sets}
+                                    onChange={(e) => {
+                                      const newExercises = [...exerciseForm.exercises]
+                                      newExercises[index].sets = e.target.value
+                                      setExerciseForm({...exerciseForm, exercises: newExercises})
+                                    }}
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '5px' }}
+                                  />
+                                </div>
+                                <div className="col-md-2">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Reps" 
+                                    value={exercise.reps}
+                                    onChange={(e) => {
+                                      const newExercises = [...exerciseForm.exercises]
+                                      newExercises[index].reps = e.target.value
+                                      setExerciseForm({...exerciseForm, exercises: newExercises})
+                                    }}
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '5px' }}
+                                  />
+                                </div>
+                                <div className="col-md-2">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Weight" 
+                                    value={exercise.weight}
+                                    onChange={(e) => {
+                                      const newExercises = [...exerciseForm.exercises]
+                                      newExercises[index].weight = e.target.value
+                                      setExerciseForm({...exerciseForm, exercises: newExercises})
+                                    }}
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '5px' }}
+                                  />
+                                </div>
+                                <div className="col-md-2">
+                                  <input 
+                                    type="text" 
+                                    placeholder="Rest" 
+                                    value={exercise.rest}
+                                    onChange={(e) => {
+                                      const newExercises = [...exerciseForm.exercises]
+                                      newExercises[index].rest = e.target.value
+                                      setExerciseForm({...exerciseForm, exercises: newExercises})
+                                    }}
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '5px' }}
+                                  />
+                                </div>
+                                <div className="col-md-1">
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      const newExercises = exerciseForm.exercises.filter((_, i) => i !== index)
+                                      setExerciseForm({...exerciseForm, exercises: newExercises})
+                                    }}
+                                    style={{ padding: '8px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          <button 
+                            type="button"
+                            onClick={() => setExerciseForm({...exerciseForm, exercises: [...exerciseForm.exercises, { name: '', sets: '', reps: '', weight: '', rest: '' }]})}
+                            style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                          >
+                            + Add Exercise
+                          </button>
+                        </div>
+                        
+                        <button type="submit" style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '5px', cursor: 'pointer' }}>
+                          {editingExercise ? 'Update Plan' : 'Assign Plan'}
+                        </button>
+                      </form>
+                    )}
+                    
+                    <div className="table-responsive">
+                      <table className="table table-striped">
+                        <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                          <tr>
+                            <th>Member</th>
+                            <th>Plan Name</th>
+                            <th>Difficulty</th>
+                            <th>Duration</th>
+                            <th>Exercises</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {exercises.map((exercise) => (
+                            <tr key={exercise._id}>
+                              <td>{exercise.memberName}</td>
+                              <td>{exercise.planName}</td>
+                              <td>
+                                <span style={{ 
+                                  backgroundColor: exercise.difficulty === 'beginner' ? '#28a745' : exercise.difficulty === 'intermediate' ? '#ffc107' : '#dc3545',
+                                  color: 'white',
+                                  padding: '4px 8px',
+                                  borderRadius: '12px',
+                                  fontSize: '12px',
+                                  textTransform: 'uppercase'
+                                }}>
+                                  {exercise.difficulty}
+                                </span>
+                              </td>
+                              <td>{exercise.duration}</td>
+                              <td>{exercise.exercises?.length || 0} exercises</td>
+                              <td>{new Date(exercise.createdAt).toLocaleDateString()}</td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                  <button 
+                                    onClick={() => {
+                                      setEditingExercise(exercise)
+                                      setExerciseForm({
+                                        memberId: exercise.memberId || '',
+                                        memberName: exercise.memberName || '',
+                                        planName: exercise.planName || '',
+                                        description: exercise.description || '',
+                                        exercises: exercise.exercises || [{ name: '', sets: '', reps: '', weight: '', rest: '' }],
+                                        duration: exercise.duration || '',
+                                        difficulty: exercise.difficulty || 'beginner',
+                                        notes: exercise.notes || ''
+                                      })
+                                      setShowExerciseForm(true)
+                                    }}
+                                    style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={async () => {
+                                      if (confirm('Delete this exercise plan?')) {
+                                        try {
+                                          await fetch(`/api/exercises/${exercise._id}`, { method: 'DELETE' })
+                                          fetchExercises()
+                                          showToast('Exercise plan deleted', 'success')
+                                        } catch (error) {
+                                          showToast('Error deleting plan', 'error')
+                                        }
+                                      }
+                                    }}
+                                    style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+
                 {activeTab === 'quotes' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -4413,6 +5569,23 @@ export default function Admin() {
             </div>
           </div>
         </div>
+
+        {activeTab === 'events' && (
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            <h4 style={{ color: '#333', marginBottom: '20px' }}>Event Management</h4>
+            <p style={{ color: '#666', marginBottom: '30px' }}>Create and manage academy events, competitions, and workshops</p>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="/admin/events" className="btn btn-outline-primary" target="_blank">
+                <i className="fas fa-calendar-alt me-2"></i>
+                Manage Events
+              </a>
+              <a href="/dashboard" className="btn btn-outline-success">
+                <i className="fas fa-chart-line me-2"></i>
+                Dashboard
+              </a>
+            </div>
+          </div>
+        )}
       </div>
       <Toast />
     </>

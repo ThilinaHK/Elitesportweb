@@ -2,11 +2,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Toast from '../components/Toast';
+import Navbar from '../components/Navbar';
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', phone: '' });
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [toast, setToast] = useState({ show: false, message: '', type: '' })
+  const [showRegisterModal, setShowRegisterModal] = useState(false)
+  const [registerForm, setRegisterForm] = useState({
+    fullName: '', email: '', phone: '', nic: '', address: '', dateOfBirth: '',
+    gender: 'male', weight: '', height: '', emergencyContact: '', medicalConditions: '', membershipType: 'trial'
+  })
+  const [registerLoading, setRegisterLoading] = useState(false)
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -50,27 +57,7 @@ export default function Login() {
         `}</style>
       </Head>
 
-      {/* Header */}
-      <header className="fixed-top" style={{background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', boxShadow: '0 2px 30px rgba(0,0,0,0.08)', borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
-        <div className="container">
-          <div className="d-flex align-items-center justify-content-between py-3">
-            <div className="d-flex align-items-center">
-              <img src="/img/eliet_logo.jpg" width="55" height="55" alt="Elite Sports Academy" className="rounded-circle me-3" style={{boxShadow: '0 4px 15px rgba(243,97,0,0.2)'}} />
-              <div>
-                <h4 className="mb-0 fw-bold" style={{color: '#2c3e50', fontSize: '1.4rem'}}>Elite Sports</h4>
-                <small className="text-muted fw-medium">Academy</small>
-              </div>
-            </div>
-            <nav className="d-flex align-items-center gap-4">
-              <a href="/" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Home</a>
-              <a href="/classes" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Classes</a>
-              <a href="/posts" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Videos</a>
-              <a href="/articles" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Articles</a>
-              <a href="/login" className="text-decoration-none fw-semibold px-3 py-2 rounded-pill" style={{color: '#f36100', background: 'rgba(243,97,0,0.1)', transition: 'all 0.3s'}}>Member Login</a>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Login Section */}
       <section className="position-relative overflow-hidden" style={{minHeight: '100vh', background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(243,97,0,0.8)), url(/img/member-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', display: 'flex', alignItems: 'center', paddingTop: '100px'}}>
@@ -152,10 +139,15 @@ export default function Login() {
                 <div className="text-center">
                   <div className="mb-3 pb-3" style={{borderBottom: '1px solid #e9ecef'}}>
                     <p className="text-muted mb-2">Don't have an account?</p>
-                    <a href="/" className="text-decoration-none fw-semibold" style={{color: '#f36100'}}>
+                    <button 
+                      type="button"
+                      onClick={() => setShowRegisterModal(true)}
+                      className="text-decoration-none fw-semibold" 
+                      style={{color: '#f36100', background: 'none', border: 'none', cursor: 'pointer'}}
+                    >
                       <i className="fas fa-user-plus me-1"></i>
                       Register as New Member
-                    </a>
+                    </button>
                   </div>
                   <a href="/forgot-password" className="text-muted text-decoration-none small">
                     <i className="fas fa-key me-1"></i>
@@ -167,6 +159,121 @@ export default function Login() {
           </div>
         </div>
       </section>
+      
+      {/* Registration Modal */}
+      {showRegisterModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 9999
+        }}>
+          <div style={{
+            backgroundColor: 'white', borderRadius: '15px', padding: '30px',
+            maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, color: '#333' }}>Register as Member</h3>
+              <button onClick={() => setShowRegisterModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#666' }}>×</button>
+            </div>
+            
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              setRegisterLoading(true)
+              try {
+                const response = await fetch('/api/members', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ ...registerForm, weight: Number(registerForm.weight) || 0, height: Number(registerForm.height) || 0 })
+                })
+                
+                if (response.ok) {
+                  setToast({ show: true, message: 'Registration successful! You can now login.', type: 'success' })
+                  setShowRegisterModal(false)
+                  setRegisterForm({ fullName: '', email: '', phone: '', nic: '', address: '', dateOfBirth: '', gender: 'male', weight: '', height: '', emergencyContact: '', medicalConditions: '', membershipType: 'trial' })
+                } else {
+                  const error = await response.json()
+                  setToast({ show: true, message: error.error || 'Registration failed', type: 'error' })
+                }
+              } catch (error) {
+                setToast({ show: true, message: 'Registration failed', type: 'error' })
+              }
+              setRegisterLoading(false)
+            }}>
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Full Name *</label>
+                  <input type="text" value={registerForm.fullName} onChange={(e) => setRegisterForm({...registerForm, fullName: e.target.value})} required style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                </div>
+                <div className="col-md-6 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Email *</label>
+                  <input type="email" value={registerForm.email} onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})} required style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Phone *</label>
+                  <input type="tel" value={registerForm.phone} onChange={(e) => setRegisterForm({...registerForm, phone: e.target.value})} required style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                </div>
+                <div className="col-md-6 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>NIC Number</label>
+                  <input type="text" value={registerForm.nic} onChange={(e) => setRegisterForm({...registerForm, nic: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                </div>
+              </div>
+              <div className="mb-3">
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Address</label>
+                <textarea value={registerForm.address} onChange={(e) => setRegisterForm({...registerForm, address: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', height: '60px' }} />
+              </div>
+              <div className="row">
+                <div className="col-md-4 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Date of Birth</label>
+                  <input type="date" value={registerForm.dateOfBirth} onChange={(e) => setRegisterForm({...registerForm, dateOfBirth: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                </div>
+                <div className="col-md-4 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Gender</label>
+                  <select value={registerForm.gender} onChange={(e) => setRegisterForm({...registerForm, gender: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+                <div className="col-md-4 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Membership</label>
+                  <select value={registerForm.membershipType} onChange={(e) => setRegisterForm({...registerForm, membershipType: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}>
+                    <option value="trial">Trial</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Weight (kg)</label>
+                  <input type="number" value={registerForm.weight} onChange={(e) => setRegisterForm({...registerForm, weight: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                </div>
+                <div className="col-md-6 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Height (cm)</label>
+                  <input type="number" value={registerForm.height} onChange={(e) => setRegisterForm({...registerForm, height: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                </div>
+              </div>
+              <div className="mb-3">
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Emergency Contact</label>
+                <input type="tel" value={registerForm.emergencyContact} onChange={(e) => setRegisterForm({...registerForm, emergencyContact: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+              </div>
+              <div className="mb-4">
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Medical Conditions (Optional)</label>
+                <textarea value={registerForm.medicalConditions} onChange={(e) => setRegisterForm({...registerForm, medicalConditions: e.target.value})} placeholder="Any medical conditions we should know about..." style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', height: '60px' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" disabled={registerLoading} style={{ flex: 1, padding: '12px', background: 'linear-gradient(45deg, #f36100, #ff8c42)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                  {registerLoading ? 'Creating Account...' : 'Create Account'}
+                </button>
+                <button type="button" onClick={() => setShowRegisterModal(false)} style={{ flex: 1, padding: '12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       
       <Toast 
         message={toast.message}

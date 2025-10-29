@@ -30,11 +30,17 @@ export default function InstructorDashboard() {
 
   const fetchInstructorData = async (id) => {
     try {
-      const [classesRes, membersRes, postsRes] = await Promise.all([
+      const [instructorRes, classesRes, membersRes, postsRes] = await Promise.all([
+        fetch(`/api/instructors/${id}`),
         fetch(`/api/instructor-classes/${id}`),
         fetch(`/api/instructor-members/${id}`),
         fetch(`/api/instructor-posts/${id}`)
       ]);
+
+      if (instructorRes.ok) {
+        const instructorData = await instructorRes.json();
+        setInstructor(instructorData);
+      }
 
       const classesData = await classesRes.json();
       const membersData = await membersRes.json();
@@ -94,7 +100,14 @@ export default function InstructorDashboard() {
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
       <div style={{ background: 'white', padding: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto' }}>
-          <h1 style={{ margin: 0, color: '#333' }}>Instructor Dashboard</h1>
+          <div>
+            <h1 style={{ margin: 0, color: '#333' }}>Instructor Dashboard</h1>
+            {instructor && (
+              <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+                <strong>{instructor.name}</strong> | Registration: <span style={{ color: '#f36100', fontWeight: '600' }}>{instructor.instructorId || 'N/A'}</span>
+              </div>
+            )}
+          </div>
           <button onClick={logout} style={{ padding: '0.5rem 1rem', background: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
             Logout
           </button>

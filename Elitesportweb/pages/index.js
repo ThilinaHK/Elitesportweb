@@ -1,5 +1,7 @@
 import Head from 'next/head'
 import { useState, useEffect } from 'react'
+import EventsSection from '../components/EventsSection'
+import Navbar from '../components/Navbar'
 
 function InstructorsList() {
   const [instructors, setInstructors] = useState([])
@@ -386,33 +388,10 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
       </Head>
 
-      {/* Header */}
-      <header className="fixed-top" style={{background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', boxShadow: '0 2px 30px rgba(0,0,0,0.08)', borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
-        <div className="container">
-          <div className="d-flex align-items-center justify-content-between py-3">
-            <div className="d-flex align-items-center">
-              <img src="/img/eliet_logo.jpg" width="55" height="55" alt="Elite Sports Academy" className="rounded-circle me-3" style={{boxShadow: '0 4px 15px rgba(243,97,0,0.2)'}} />
-              <div>
-                <h4 className="mb-0 fw-bold" style={{color: '#2c3e50', fontSize: '1.4rem'}}>Elite Sports</h4>
-                <small className="text-muted fw-medium">Academy</small>
-              </div>
-            </div>
-            <nav className="d-flex align-items-center gap-4">
-              <a href="/" className="text-decoration-none fw-semibold px-3 py-2 rounded-pill" style={{color: '#f36100', background: 'rgba(243,97,0,0.1)', transition: 'all 0.3s'}}>Home</a>
-              <a href="/classes" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Classes</a>
-              <a href="/posts" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Videos</a>
-              <a href="/articles" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Articles</a>
-              <a href="/login" className="text-decoration-none fw-medium px-3 py-2 rounded-pill" style={{color: '#2c3e50', transition: 'all 0.3s'}}>Member Login</a>
-              <div className="fw-semibold px-3 py-2 rounded-pill" style={{color: '#f36100', background: 'rgba(243,97,0,0.1)'}}>
-                <i className="fas fa-phone me-2"></i>
-                (+94) 77 109 5334
-              </div>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="position-relative overflow-hidden" style={{marginTop: '80px', height: '100vh', background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(243,97,0,0.8)), url(/img/slide-1.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
@@ -432,12 +411,12 @@ export default function Home() {
                 <p className="lead mb-5" style={{fontSize: '1.5rem', color: 'rgba(255,255,255,0.95)', maxWidth: '650px', lineHeight: '1.6', textShadow: '1px 1px 3px rgba(0,0,0,0.5)'}}>
                   Join thousands of members in our premium CrossFit, Karate, and Zumba programs designed by world-class instructors
                 </p>
-                <div className="d-flex gap-4 flex-wrap">
-                  <a href="/classes" className="btn btn-lg text-white fw-bold px-6 py-3" style={{background: 'linear-gradient(45deg, #f36100, #ff8c42)', border: 'none', borderRadius: '50px', boxShadow: '0 12px 35px rgba(243,97,0,0.4)', transition: 'all 0.3s', fontSize: '18px', minWidth: '200px'}}>
-                    <i className="fas fa-rocket me-2"></i>Start Your Journey
+                <div className="d-flex gap-3 flex-wrap justify-content-center justify-content-lg-start">
+                  <a href="/classes" className="btn btn-lg text-white fw-bold px-4 py-3" style={{background: 'linear-gradient(45deg, #f36100, #ff8c42)', border: 'none', borderRadius: '50px', boxShadow: '0 12px 35px rgba(243,97,0,0.4)', transition: 'all 0.3s', fontSize: '16px', minWidth: '180px'}}>
+                    <i className="fas fa-rocket me-2"></i>Start Journey
                   </a>
-                  <a href="/login" className="btn btn-outline-light btn-lg px-6 py-3" style={{borderRadius: '50px', borderWidth: '2px', backdropFilter: 'blur(15px)', background: 'rgba(255,255,255,0.15)', fontSize: '18px', minWidth: '180px', fontWeight: '600'}}>
-                    <i className="fas fa-user me-2"></i>Member Login
+                  <a href="/login" className="btn btn-outline-light btn-lg px-4 py-3" style={{borderRadius: '50px', borderWidth: '2px', backdropFilter: 'blur(15px)', background: 'rgba(255,255,255,0.15)', fontSize: '16px', minWidth: '160px', fontWeight: '600'}}>
+                    <i className="fas fa-user me-2"></i>Login
                   </a>
                 </div>
               </div>
@@ -599,6 +578,25 @@ export default function Home() {
             </p>
           </div>
           <InstructorsList />
+        </div>
+      </section>
+
+      {/* Upcoming Events Section */}
+      <section className="py-5 position-relative" style={{background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'}}>
+        <div className="position-absolute w-100 h-100" style={{background: 'radial-gradient(circle at 30% 80%, rgba(243,97,0,0.05), transparent 50%)'}}></div>
+        <div className="container position-relative">
+          <div className="text-center mb-5">
+            <div className="mb-3">
+              <span className="badge px-3 py-2" style={{background: 'linear-gradient(45deg, #ff6b35, #f7931e)', color: 'white', borderRadius: '25px', fontSize: '14px'}}>
+                🎯 UPCOMING EVENTS
+              </span>
+            </div>
+            <h2 className="fw-bold mb-3" style={{fontSize: '3rem', background: 'linear-gradient(45deg, #333, #f36100)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
+              Upcoming Events
+            </h2>
+            <p className="text-muted fs-5">Join our exciting events, competitions, and workshops</p>
+          </div>
+          <EventsSection />
         </div>
       </section>
 
@@ -829,6 +827,43 @@ export default function Home() {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(20px);
           border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .navbar-toggler {
+          border: none !important;
+          padding: 8px 12px;
+          border-radius: 8px;
+          background: rgba(243,97,0,0.1);
+        }
+        
+        .navbar-toggler:focus {
+          box-shadow: none !important;
+        }
+        
+        .navbar-toggler-icon {
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23f36100' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        
+        @media (max-width: 991.98px) {
+          .navbar-collapse {
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+          }
+          
+          .navbar-nav {
+            gap: 8px !important;
+          }
+          
+          .nav-link {
+            text-align: center;
+            margin: 4px 0;
+            border-radius: 12px !important;
+          }
         }
       `}</style>
     </>

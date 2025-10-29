@@ -16,6 +16,12 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
+      // Check if email already exists
+      const existingMember = await Member.findOne({ email: req.body.email })
+      if (existingMember) {
+        return res.status(400).json({ error: 'Email already exists' })
+      }
+      
       // Convert string numbers to actual numbers
       const memberData = {
         ...req.body,

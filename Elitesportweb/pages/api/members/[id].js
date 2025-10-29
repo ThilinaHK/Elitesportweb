@@ -1,40 +1,58 @@
-import dbConnect from '../../../lib/mongodb';
-import Member from '../../../models/Member';
+import dbConnect from '../../../lib/mongodb'
+import Member from '../../../models/Member'
 
 export default async function handler(req, res) {
-  const { id } = req.query;
-
-  await dbConnect();
+  const { id } = req.query
 
   if (req.method === 'GET') {
     try {
-      const member = await Member.findById(id);
+      await dbConnect()
+      const member = await Member.findById(id)
       if (!member) {
-        return res.status(404).json({ success: false, message: 'Member not found' });
+        return res.status(404).json({ error: 'Member not found' })
       }
-      res.status(200).json({ success: true, member });
+      res.json({ member })
     } catch (error) {
-      res.status(500).json({ success: false, message: 'Server error' });
+      console.error('Member fetch error:', error)
+      res.status(500).json({ error: error.message })
     }
   } else if (req.method === 'PUT') {
     try {
-      const { name, email, phone, address, emergencyContact, medicalConditions } = req.body;
+      await dbConnect()
       
-      const member = await Member.findByIdAndUpdate(
-        id,
-        { name, email, phone, address, emergencyContact, medicalConditions },
-        { new: true }
-      );
-      
-      if (!member) {
-        return res.status(404).json({ success: false, message: 'Member not found' });
+      // Check if email already exists (excluding current member)
+      if (req.body.email) {
+        const existingMember = await Member.findOne({ 
+          email: req.body.email, 
+          _id: { $ne: id } 
+        })
+        if (existingMember) {
+          return res.status(400).json({ error: 'Email already exists' })
+        }
       }
       
-      res.status(200).json({ success: true, member });
+      const member = await Member.findByIdAndUpdate(id, req.body, { new: true })
+      if (!member) {
+        return res.status(404).json({ error: 'Member not found' })
+      }
+      res.json(member)
     } catch (error) {
-      res.status(500).json({ success: false, message: 'Server error' });
+      console.error('Member update error:', error)
+      res.status(500).json({ error: error.message })
+    }
+  } else if (req.method === 'DELETE') {
+    try {
+      await dbConnect()
+      const member = await Member.findByIdAndDelete(id)
+      if (!member) {
+        return res.status(404).json({ error: 'Member not found' })
+      }
+      res.json({ message: 'Member deleted successfully' })
+    } catch (error) {
+      console.error('Member delete error:', error)
+      res.status(500).json({ error: error.message })
     }
   } else {
-    res.status(405).json({ message: 'Method not allowed' });
+    res.status(405).json({ message: 'Method not allowed' })
   }
 }

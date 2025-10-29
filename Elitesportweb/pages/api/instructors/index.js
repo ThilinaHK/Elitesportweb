@@ -15,7 +15,22 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     try {
       await dbConnect()
-      const instructor = await Instructor.create(req.body)
+      
+      // Generate unique instructor ID with EL00 prefix
+      const lastInstructor = await Instructor.findOne({}, {}, { sort: { 'createdAt': -1 } })
+      let nextNumber = 1
+      if (lastInstructor && lastInstructor.instructorId) {
+        const lastNumber = parseInt(lastInstructor.instructorId.replace('EL00', ''))
+        nextNumber = lastNumber + 1
+      }
+      const instructorId = `EL00${nextNumber.toString().padStart(3, '0')}`
+      
+      const instructorData = {
+        ...req.body,
+        instructorId
+      }
+      
+      const instructor = await Instructor.create(instructorData)
       res.status(201).json(instructor)
     } catch (error) {
       res.status(500).json({ error: error.message })
