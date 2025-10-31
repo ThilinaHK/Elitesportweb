@@ -5,12 +5,13 @@ import Toast from '../components/Toast';
 import Navbar from '../components/Navbar';
 
 export default function Login() {
-  const [formData, setFormData] = useState({ email: '', phone: '' });
+  const [formData, setFormData] = useState({ email: '', phone: '', username: '' });
+  const [loginMethod, setLoginMethod] = useState('email-phone'); // 'email-phone' or 'username'
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' })
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [registerForm, setRegisterForm] = useState({
-    fullName: '', email: '', phone: '', nic: '', address: '', dateOfBirth: '',
+    username: '', fullName: '', email: '', phone: '', nic: '', address: '', dateOfBirth: '',
     gender: 'male', weight: '', height: '', emergencyContact: '', medicalConditions: '', membershipType: 'trial'
   })
   const [registerLoading, setRegisterLoading] = useState(false)
@@ -80,37 +81,103 @@ export default function Login() {
               
               <div className="p-5 rounded-4" style={{background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)'}}>
                 <form onSubmit={handleSubmit}>
-                  <div className="mb-4">
-                    <label className="form-label fw-semibold" style={{color: '#2c3e50'}}>Email Address</label>
-                    <div className="position-relative">
-                      <i className="fas fa-envelope position-absolute" style={{left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#f36100'}}></i>
-                      <input
-                        type="email"
-                        className="form-control ps-5"
-                        placeholder="Enter your email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        style={{padding: '15px 15px 15px 45px', borderRadius: '12px', border: '2px solid #e9ecef', fontSize: '16px'}}
-                        required
-                      />
+                  <div className="mb-3">
+                    <div className="d-flex justify-content-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setLoginMethod('email-phone')}
+                        className={`btn ${loginMethod === 'email-phone' ? 'btn-primary' : 'btn-outline-primary'}`}
+                        style={{ borderRadius: '25px', fontSize: '14px' }}
+                      >
+                        Email + Phone
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLoginMethod('username')}
+                        className={`btn ${loginMethod === 'username' ? 'btn-primary' : 'btn-outline-primary'}`}
+                        style={{ borderRadius: '25px', fontSize: '14px' }}
+                      >
+                        Username
+                      </button>
                     </div>
                   </div>
-                  
-                  <div className="mb-4">
-                    <label className="form-label fw-semibold" style={{color: '#2c3e50'}}>Phone Number</label>
-                    <div className="position-relative">
-                      <i className="fas fa-phone position-absolute" style={{left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#f36100'}}></i>
-                      <input
-                        type="tel"
-                        className="form-control ps-5"
-                        placeholder="Enter your phone number"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        style={{padding: '15px 15px 15px 45px', borderRadius: '12px', border: '2px solid #e9ecef', fontSize: '16px'}}
-                        required
-                      />
-                    </div>
-                  </div>
+
+                  {loginMethod === 'email-phone' ? (
+                    <>
+                      <div className="mb-4">
+                        <label className="form-label fw-semibold" style={{color: '#2c3e50'}}>Email Address</label>
+                        <div className="position-relative">
+                          <i className="fas fa-envelope position-absolute" style={{left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#f36100'}}></i>
+                          <input
+                            type="email"
+                            className="form-control ps-5"
+                            placeholder="Enter your email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            style={{padding: '15px 15px 15px 45px', borderRadius: '12px', border: '2px solid #e9ecef', fontSize: '16px'}}
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <label className="form-label fw-semibold" style={{color: '#2c3e50'}}>Phone Number</label>
+                        <div className="position-relative">
+                          <i className="fas fa-phone position-absolute" style={{left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#f36100'}}></i>
+                          <input
+                            type="tel"
+                            className="form-control ps-5"
+                            placeholder="Enter your phone number"
+                            value={formData.phone}
+                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                            style={{padding: '15px 15px 15px 45px', borderRadius: '12px', border: '2px solid #e9ecef', fontSize: '16px'}}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="mb-4">
+                        <label className="form-label fw-semibold" style={{color: '#2c3e50'}}>Username</label>
+                        <div className="position-relative">
+                          <i className="fas fa-user position-absolute" style={{left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#f36100'}}></i>
+                          <input
+                            type="text"
+                            className="form-control ps-5"
+                            placeholder="Enter your username"
+                            value={formData.username}
+                            onChange={(e) => setFormData({...formData, username: e.target.value})}
+                            style={{padding: '15px 15px 15px 45px', borderRadius: '12px', border: '2px solid #e9ecef', fontSize: '16px'}}
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <label className="form-label fw-semibold" style={{color: '#2c3e50'}}>Email or Phone</label>
+                        <div className="position-relative">
+                          <i className="fas fa-at position-absolute" style={{left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#f36100'}}></i>
+                          <input
+                            type="text"
+                            className="form-control ps-5"
+                            placeholder="Enter email or phone number"
+                            value={formData.email || formData.phone}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value.includes('@')) {
+                                setFormData({...formData, email: value, phone: ''});
+                              } else {
+                                setFormData({...formData, phone: value, email: ''});
+                              }
+                            }}
+                            style={{padding: '15px 15px 15px 45px', borderRadius: '12px', border: '2px solid #e9ecef', fontSize: '16px'}}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                   
                   <button
                     type="submit"
@@ -192,7 +259,7 @@ export default function Login() {
                 if (response.ok) {
                   setToast({ show: true, message: 'Registration successful! You can now login.', type: 'success' })
                   setShowRegisterModal(false)
-                  setRegisterForm({ fullName: '', email: '', phone: '', nic: '', address: '', dateOfBirth: '', gender: 'male', weight: '', height: '', emergencyContact: '', medicalConditions: '', membershipType: 'trial' })
+                  setRegisterForm({ username: '', fullName: '', email: '', phone: '', nic: '', address: '', dateOfBirth: '', gender: 'male', weight: '', height: '', emergencyContact: '', medicalConditions: '', membershipType: 'trial' })
                 } else {
                   const error = await response.json()
                   setToast({ show: true, message: error.error || 'Registration failed', type: 'error' })
@@ -203,11 +270,15 @@ export default function Login() {
               setRegisterLoading(false)
             }}>
               <div className="row">
-                <div className="col-md-6 mb-3">
+                <div className="col-md-4 mb-3">
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Username</label>
+                  <input type="text" value={registerForm.username} onChange={(e) => setRegisterForm({...registerForm, username: e.target.value})} placeholder="Optional" style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                </div>
+                <div className="col-md-4 mb-3">
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Full Name *</label>
                   <input type="text" value={registerForm.fullName} onChange={(e) => setRegisterForm({...registerForm, fullName: e.target.value})} required style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
                 </div>
-                <div className="col-md-6 mb-3">
+                <div className="col-md-4 mb-3">
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Email *</label>
                   <input type="email" value={registerForm.email} onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})} required style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
                 </div>

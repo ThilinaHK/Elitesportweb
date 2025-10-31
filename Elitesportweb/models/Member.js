@@ -6,9 +6,10 @@ const MemberSchema = new mongoose.Schema({
     unique: true, 
     default: () => 'ESA' + Date.now().toString().slice(-8) + Math.floor(Math.random() * 100).toString().padStart(2, '0')
   },
+  username: { type: String, unique: true, sparse: true },
   fullName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  phone: { type: String, required: true },
+  phone: { type: String, required: true, unique: true },
   nic: { type: String, required: true },
   address: { type: String, required: true },
   dateOfBirth: { type: Date, required: true },

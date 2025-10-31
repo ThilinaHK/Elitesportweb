@@ -16,15 +16,32 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
-      // Check if email already exists
-      const existingMember = await Member.findOne({ email: req.body.email })
-      if (existingMember) {
-        return res.status(400).json({ error: 'Email already exists' })
+      // Check if email, phone, or username already exists
+      const { email, phone, username } = req.body;
+      
+      const existingEmail = await Member.findOne({ email });
+      if (existingEmail) {
+        return res.status(400).json({ error: 'Email already exists' });
       }
       
-      // Convert string numbers to actual numbers
+      const existingPhone = await Member.findOne({ phone });
+      if (existingPhone) {
+        return res.status(400).json({ error: 'Phone number already exists' });
+      }
+      
+      if (username) {
+        const existingUsername = await Member.findOne({ username });
+        if (existingUsername) {
+          return res.status(400).json({ error: 'Username already exists' });
+        }
+      }
+      
+      // Convert string numbers to actual numbers and clean username
       const memberData = {
         ...req.body,
+        username: username ? username.toLowerCase().trim() : undefined,
+        email: email.toLowerCase().trim(),
+        phone: phone.trim(),
         weight: req.body.weight ? Number(req.body.weight) : undefined,
         height: req.body.height ? Number(req.body.height) : undefined
       }

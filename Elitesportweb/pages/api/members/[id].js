@@ -26,18 +26,46 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
-      // Check if email already exists (excluding current member)
-      if (req.body.email) {
-        const existingMember = await Member.findOne({ 
-          email: req.body.email, 
+      // Check if email, phone, or username already exists (excluding current member)
+      const { email, phone, username } = req.body;
+      
+      if (email) {
+        const existingEmail = await Member.findOne({ 
+          email: email.toLowerCase().trim(), 
           _id: { $ne: id } 
-        })
-        if (existingMember) {
-          return res.status(400).json({ error: 'Email already exists' })
+        });
+        if (existingEmail) {
+          return res.status(400).json({ error: 'Email already exists' });
         }
       }
       
-      const member = await Member.findByIdAndUpdate(id, req.body, { new: true })
+      if (phone) {
+        const existingPhone = await Member.findOne({ 
+          phone: phone.trim(), 
+          _id: { $ne: id } 
+        });
+        if (existingPhone) {
+          return res.status(400).json({ error: 'Phone number already exists' });
+        }
+      }
+      
+      if (username) {
+        const existingUsername = await Member.findOne({ 
+          username: username.toLowerCase().trim(), 
+          _id: { $ne: id } 
+        });
+        if (existingUsername) {
+          return res.status(400).json({ error: 'Username already exists' });
+        }
+      }
+      
+      // Clean data before update
+      const updateData = { ...req.body };
+      if (updateData.email) updateData.email = updateData.email.toLowerCase().trim();
+      if (updateData.phone) updateData.phone = updateData.phone.trim();
+      if (updateData.username) updateData.username = updateData.username.toLowerCase().trim();
+      
+      const member = await Member.findByIdAndUpdate(id, updateData, { new: true })
       if (!member) {
         return res.status(404).json({ error: 'Member not found' })
       }
