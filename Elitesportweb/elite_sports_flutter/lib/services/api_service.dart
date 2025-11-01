@@ -6,16 +6,14 @@ import '../models/payment.dart';
 import '../models/notification.dart';
 import '../models/diet_plan.dart';
 import '../models/exercise_plan.dart';
+import 'cors_proxy.dart';
 
 class ApiService {
   static const String baseUrl = 'https://elitesport.vercel.app/api';
 
   static Future<Member?> getMemberData(String memberId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/members/$memberId'),
-        headers: {'Accept': 'application/json'},
-      );
+      final response = await CorsProxy.get('/members/$memberId');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return Member.fromJson(data['member'] ?? data);
@@ -41,10 +39,7 @@ class ApiService {
 
   static Future<List<ClassModel>> getMemberClasses(String memberId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/member-classes/$memberId'),
-        headers: {'Accept': 'application/json'},
-      );
+      final response = await CorsProxy.get('/member-classes/$memberId');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return (data['classes'] as List)
@@ -78,10 +73,7 @@ class ApiService {
 
   static Future<List<Payment>> getMemberPayments(String memberId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/member-payments/$memberId'),
-        headers: {'Accept': 'application/json'},
-      );
+      final response = await CorsProxy.get('/member-payments/$memberId');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return (data['payments'] as List)
@@ -117,10 +109,7 @@ class ApiService {
 
   static Future<List<NotificationModel>> getMemberNotifications(String memberId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/member-notifications/$memberId'),
-        headers: {'Accept': 'application/json'},
-      );
+      final response = await CorsProxy.get('/member-notifications/$memberId');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return (data['notifications'] as List)
