@@ -1,8 +1,10 @@
 import dbConnect from '../../../lib/mongodb';
 import Member from '../../../models/Member';
 import Notification from '../../../models/Notification';
+import cors from '../../../lib/cors';
 
 export default async function handler(req, res) {
+  cors(req, res);
   const { id } = req.query;
 
   if (req.method !== 'GET') {

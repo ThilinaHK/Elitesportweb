@@ -13,33 +13,48 @@ class ApiService {
 
   static Future<Member?> getMemberData(String memberId) async {
     try {
-      final response = await CorsProxy.get('/members/$memberId');
+      final response = await http.get(
+        Uri.parse('$baseUrl/members/$memberId'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+      
+      print('Member API Status: ${response.statusCode}');
+      print('Member API Body: ${response.body}');
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return Member.fromJson(data['member'] ?? data);
+        if (data['success'] == true && data['member'] != null) {
+          return Member.fromJson(data['member']);
+        }
       }
     } catch (e) {
       print('Error fetching member data: $e');
-      // Return mock data for demo
-      return Member(
-        id: memberId,
-        memberId: 'ESA001',
-        fullName: 'Demo Member',
-        email: 'demo@example.com',
-        phone: '+94 77 123 4567',
-        joinDate: DateTime.now().subtract(Duration(days: 30)),
-        dateOfBirth: DateTime(1990, 1, 1),
-        gender: 'male',
-        address: '123 Demo Street, Colombo',
-        emergencyContact: '+94 77 987 6543',
-      );
     }
-    return null;
+    
+    // Return mock data for demo
+    return Member(
+      id: memberId,
+      memberId: 'ESA001',
+      fullName: 'THK',
+      email: 'thilina2u@gmail.com',
+      phone: '0716800490',
+      joinDate: DateTime.now().subtract(Duration(days: 30)),
+      dateOfBirth: DateTime(1990, 1, 1),
+      gender: 'male',
+      address: '123 Demo Street, Colombo',
+      emergencyContact: '+94 77 987 6543',
+    );
   }
 
   static Future<List<ClassModel>> getMemberClasses(String memberId) async {
     try {
-      final response = await CorsProxy.get('/member-classes/$memberId');
+      final response = await http.get(
+        Uri.parse('$baseUrl/member-classes/$memberId'),
+        headers: {'Accept': 'application/json'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return (data['classes'] as List)
@@ -73,7 +88,10 @@ class ApiService {
 
   static Future<List<Payment>> getMemberPayments(String memberId) async {
     try {
-      final response = await CorsProxy.get('/member-payments/$memberId');
+      final response = await http.get(
+        Uri.parse('$baseUrl/member-payments/$memberId'),
+        headers: {'Accept': 'application/json'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return (data['payments'] as List)
@@ -109,7 +127,10 @@ class ApiService {
 
   static Future<List<NotificationModel>> getMemberNotifications(String memberId) async {
     try {
-      final response = await CorsProxy.get('/member-notifications/$memberId');
+      final response = await http.get(
+        Uri.parse('$baseUrl/member-notifications/$memberId'),
+        headers: {'Accept': 'application/json'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return (data['notifications'] as List)
