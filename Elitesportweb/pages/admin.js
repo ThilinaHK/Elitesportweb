@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import Toast, { showToast } from '../components/Toast'
 import LoadingSpinner from '../components/LoadingSpinner'
 import DietPlanManager from '../components/DietPlanManager'
+import AttendanceTab from '../components/AttendanceTab'
 
 export default function Admin() {
   const router = useRouter()
@@ -50,6 +51,12 @@ export default function Admin() {
   const [showSalaryForm, setShowSalaryForm] = useState(false)
   const [salaryFilter, setSalaryFilter] = useState('all')
   const [posts, setPosts] = useState([])
+  const [pendingPosts, setPendingPosts] = useState([])
+  const [postHistory, setPostHistory] = useState([])
+  const [pendingPlans, setPendingPlans] = useState({ dietPlans: [], exercisePlans: [] })
+  const [attendanceData, setAttendanceData] = useState([])
+  const [selectedClass, setSelectedClass] = useState('')
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0])
   const [postForm, setPostForm] = useState({
     title: '',
     description: '',
@@ -240,8 +247,10 @@ export default function Admin() {
     qualifications: [''],
     experience: 1,
     position: 'instructor',
+    salary: 50000,
     bio: '',
-    image: ''
+    image: '',
+    assignedClasses: []
   })
 
   useEffect(() => {
@@ -258,6 +267,9 @@ export default function Admin() {
     fetchReminders()
     fetchPaymentStatus()
     fetchPosts()
+    fetchPendingPosts()
+    fetchPostHistory()
+    fetchPendingPlans()
     fetchBookings()
     fetchNotifications()
     fetchDiets()
@@ -383,6 +395,72 @@ export default function Admin() {
       setPosts(data)
     } catch (error) {
       console.error('Error fetching posts:', error)
+    }
+  }
+
+  const fetchPendingPosts = async () => {
+    try {
+      const response = await fetch('/api/admin/posts/pending')
+      const data = await response.json()
+      setPendingPosts(data)
+    } catch (error) {
+      console.error('Error fetching pending posts:', error)
+    }
+  }
+
+  const fetchPostHistory = async () => {
+    try {
+      const response = await fetch('/api/admin/posts/history')
+      const data = await response.json()
+      setPostHistory(data)
+    } catch (error) {
+      console.error('Error fetching post history:', error)
+    }
+  }
+
+  const handlePostApproval = async (postId, action, rejectionReason = '') => {
+    try {
+      const response = await fetch('/api/admin/posts/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId, action, rejectionReason })
+      })
+      if (response.ok) {
+        fetchPendingPosts()
+        fetchPosts()
+        fetchPostHistory()
+        showToast(`Post ${action} successfully`, 'success')
+      }
+    } catch (error) {
+      console.error('Error updating post approval:', error)
+      showToast('Error updating post approval', 'error')
+    }
+  }
+
+  const fetchPendingPlans = async () => {
+    try {
+      const response = await fetch('/api/admin/plans/pending')
+      const data = await response.json()
+      setPendingPlans(data)
+    } catch (error) {
+      console.error('Error fetching pending plans:', error)
+    }
+  }
+
+  const handlePlanApproval = async (planId, planType, action, rejectionReason = '') => {
+    try {
+      const response = await fetch('/api/admin/plans/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId, planType, action, rejectionReason })
+      })
+      if (response.ok) {
+        fetchPendingPlans()
+        showToast(`${planType} plan ${action} successfully`, 'success')
+      }
+    } catch (error) {
+      console.error('Error updating plan approval:', error)
+      showToast('Error updating plan approval', 'error')
     }
   }
 
@@ -1268,7 +1346,8 @@ export default function Admin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...instructorForm,
-          qualifications: instructorForm.qualifications.filter(q => q.trim() !== '')
+          qualifications: instructorForm.qualifications.filter(q => q.trim() !== ''),
+          assignedClasses: instructorForm.assignedClasses || []
         })
       })
       if (response.ok) {
@@ -1285,11 +1364,14 @@ export default function Admin() {
           position: 'instructor',
           salary: 50000,
           bio: '',
-          image: ''
+          image: '',
+          assignedClasses: []
         })
+        showToast(editingInstructor ? 'Instructor updated successfully!' : 'Instructor created successfully!', 'success')
       }
     } catch (error) {
       console.error('Error saving instructor:', error)
+      showToast('Error saving instructor', 'error')
     }
   }
 
@@ -1305,7 +1387,8 @@ export default function Admin() {
       position: instructor.position || 'instructor',
       salary: instructor.salary || 50000,
       bio: instructor.bio || '',
-      image: instructor.image || ''
+      image: instructor.image || '',
+      assignedClasses: instructor.assignedClasses || []
     })
     setShowInstructorForm(true)
   }
@@ -1502,6 +1585,19 @@ export default function Admin() {
               Instructors ({instructors.length})
             </button>
             <button 
+              onClick={() => setActiveTab('attendance')}
+              style={{
+                backgroundColor: activeTab === 'attendance' ? '#f36100' : 'transparent',
+                color: activeTab === 'attendance' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Attendance
+            </button>
+            <button 
               onClick={() => setActiveTab('payments')}
               style={{
                 backgroundColor: activeTab === 'payments' ? '#f36100' : 'transparent',
@@ -1552,6 +1648,32 @@ export default function Admin() {
               }}
             >
               Video Posts ({posts ? posts.filter(p => p.type !== 'article').length : 0})
+            </button>
+            <button 
+              onClick={() => setActiveTab('post-approval')}
+              style={{
+                backgroundColor: activeTab === 'post-approval' ? '#f36100' : 'transparent',
+                color: activeTab === 'post-approval' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Post Approval
+            </button>
+            <button 
+              onClick={() => setActiveTab('plan-approval')}
+              style={{
+                backgroundColor: activeTab === 'plan-approval' ? '#f36100' : 'transparent',
+                color: activeTab === 'plan-approval' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Plan Approval
             </button>
             <button 
               onClick={() => setActiveTab('articles')}
@@ -2447,8 +2569,10 @@ export default function Admin() {
                             qualifications: [''],
                             experience: 1,
                             position: 'instructor',
+                            salary: 50000,
                             bio: '',
-                            image: ''
+                            image: '',
+                            assignedClasses: []
                           })
                         }}
                         style={{
@@ -2546,7 +2670,13 @@ export default function Admin() {
                                         if (e.target.checked) {
                                           setInstructorForm({...instructorForm, specialization: [...instructorForm.specialization, spec]})
                                         } else {
-                                          setInstructorForm({...instructorForm, specialization: instructorForm.specialization.filter(s => s !== spec)})
+                                          const newSpecialization = instructorForm.specialization.filter(s => s !== spec)
+                                          // Clear assigned classes that don't match remaining specializations
+                                          const validClasses = instructorForm.assignedClasses.filter(classId => {
+                                            const cls = classes.find(c => c._id === classId)
+                                            return cls && newSpecialization.includes(cls.category)
+                                          })
+                                          setInstructorForm({...instructorForm, specialization: newSpecialization, assignedClasses: validClasses})
                                         }
                                       }}
                                       style={{ marginRight: '5px' }}
@@ -2625,6 +2755,31 @@ export default function Admin() {
                               onChange={(e) => setInstructorForm({...instructorForm, bio: e.target.value})}
                               style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', height: '60px' }}
                             />
+                            <div style={{ marginTop: '15px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Assign Classes:</label>
+                              <div style={{ maxHeight: '120px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px', padding: '10px' }}>
+                                {classes.filter(cls => instructorForm.specialization.includes(cls.category)).map(cls => (
+                                  <label key={cls._id} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', fontSize: '14px' }}>
+                                    <input 
+                                      type="checkbox" 
+                                      checked={instructorForm.assignedClasses.includes(cls._id)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setInstructorForm({...instructorForm, assignedClasses: [...instructorForm.assignedClasses, cls._id]})
+                                        } else {
+                                          setInstructorForm({...instructorForm, assignedClasses: instructorForm.assignedClasses.filter(id => id !== cls._id)})
+                                        }
+                                      }}
+                                      style={{ marginRight: '8px' }}
+                                    />
+                                    <span>{cls.name} ({cls.day} {cls.time})</span>
+                                  </label>
+                                ))}
+                                {classes.filter(cls => instructorForm.specialization.includes(cls.category)).length === 0 && (
+                                  <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>No classes available for selected specialization</p>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <button 
@@ -2687,6 +2842,7 @@ export default function Admin() {
                               <th>Contact</th>
                               <th>Position</th>
                               <th>Specialization</th>
+                              <th>Assigned Classes</th>
                               <th>Experience</th>
                               <th>Actions</th>
                             </tr>
@@ -2752,6 +2908,32 @@ export default function Admin() {
                                     </span>
                                   ))}
                                 </td>
+                                <td>
+                                  <div style={{ fontSize: '11px' }}>
+                                    {instructor.assignedClasses && instructor.assignedClasses.length > 0 ? (
+                                      instructor.assignedClasses.slice(0, 2).map(classId => {
+                                        const cls = classes.find(c => c._id === classId)
+                                        return cls ? (
+                                          <div key={classId} style={{ 
+                                            backgroundColor: cls.category === 'crossfit' ? '#ff5722' : cls.category === 'karate' ? '#2196f3' : '#9c27b0',
+                                            color: 'white',
+                                            padding: '2px 6px',
+                                            borderRadius: '8px',
+                                            marginBottom: '2px',
+                                            fontSize: '10px'
+                                          }}>
+                                            {cls.name}
+                                          </div>
+                                        ) : null
+                                      })
+                                    ) : (
+                                      <span style={{ color: '#999' }}>No classes assigned</span>
+                                    )}
+                                    {instructor.assignedClasses && instructor.assignedClasses.length > 2 && (
+                                      <div style={{ fontSize: '9px', color: '#666' }}>+{instructor.assignedClasses.length - 2} more</div>
+                                    )}
+                                  </div>
+                                </td>
                                 <td>{instructor.experience} years</td>
                                 <td>
                                   <div style={{ display: 'flex', gap: '5px' }}>
@@ -2792,6 +2974,18 @@ export default function Admin() {
                       </div>
                     )}
                   </>
+                )}
+
+                {activeTab === 'attendance' && (
+                  <AttendanceTab 
+                    classes={classes}
+                    attendanceData={attendanceData}
+                    setAttendanceData={setAttendanceData}
+                    selectedClass={selectedClass}
+                    setSelectedClass={setSelectedClass}
+                    attendanceDate={attendanceDate}
+                    setAttendanceDate={setAttendanceDate}
+                  />
                 )}
 
                 {activeTab === 'payments' && (
@@ -3677,6 +3871,250 @@ export default function Admin() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                  </>
+                )}
+
+                {activeTab === 'post-approval' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Post Approval Management</h3>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '14px', color: '#666' }}>Pending Posts: {pendingPosts.length}</span>
+                        <button 
+                          onClick={() => {
+                            fetchPendingPosts()
+                            fetchPostHistory()
+                          }}
+                          style={{
+                            backgroundColor: '#17a2b8',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Refresh
+                        </button>
+                      </div>
+                    </div>
+
+                    {pendingPosts.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '50px', color: '#666' }}>
+                        <i className="fas fa-check-circle" style={{ fontSize: '48px', marginBottom: '20px', color: '#28a745' }}></i>
+                        <h4>No Pending Posts</h4>
+                        <p>All posts have been reviewed and approved.</p>
+                      </div>
+                    ) : (
+                      <div className="row">
+                        {pendingPosts.map((post) => (
+                          <div key={post._id} className="col-md-6 col-lg-4" style={{ marginBottom: '20px' }}>
+                            <div style={{ backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                              <div style={{ marginBottom: '15px' }}>
+                                <h5 style={{ margin: '0 0 10px 0', color: '#333' }}>{post.title}</h5>
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                  <span style={{ 
+                                    backgroundColor: post.category === 'crossfit' ? '#ff5722' : post.category === 'karate' ? '#2196f3' : post.category === 'zumba' ? '#9c27b0' : '#666',
+                                    color: 'white',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '11px',
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {post.category}
+                                  </span>
+                                  <span style={{ 
+                                    backgroundColor: post.type === 'article' ? '#6f42c1' : '#17a2b8',
+                                    color: 'white',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '11px',
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {post.type}
+                                  </span>
+                                </div>
+                                <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#666', lineHeight: '1.4' }}>
+                                  {post.type === 'article' ? post.excerpt : post.description}
+                                </p>
+                                <div style={{ fontSize: '12px', color: '#999' }}>
+                                  <div>By: {post.instructorName || 'Admin'}</div>
+                                  <div>Created: {new Date(post.createdAt).toLocaleDateString()}</div>
+                                </div>
+                              </div>
+                              
+                              <div style={{ display: 'flex', gap: '10px', justifyContent: 'space-between' }}>
+                                <button 
+                                  onClick={() => handlePostApproval(post._id, 'approved')}
+                                  style={{
+                                    backgroundColor: '#28a745',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    flex: 1
+                                  }}
+                                >
+                                  <i className="fas fa-check"></i> Approve
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    const reason = prompt('Enter rejection reason (optional):')
+                                    if (reason !== null) {
+                                      handlePostApproval(post._id, 'rejected', reason)
+                                    }
+                                  }}
+                                  style={{
+                                    backgroundColor: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    flex: 1
+                                  }}
+                                >
+                                  <i className="fas fa-times"></i> Reject
+                                </button>
+                              </div>
+                              
+                              {post.type !== 'article' && post.youtubeUrl && (
+                                <div style={{ marginTop: '15px' }}>
+                                  <a 
+                                    href={post.youtubeUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      display: 'inline-block',
+                                      backgroundColor: '#ff0000',
+                                      color: 'white',
+                                      padding: '6px 12px',
+                                      borderRadius: '4px',
+                                      textDecoration: 'none',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    <i className="fab fa-youtube"></i> View Video
+                                  </a>
+                                </div>
+                              )}
+                              
+                              {post.type === 'article' && (
+                                <div style={{ marginTop: '15px' }}>
+                                  <button 
+                                    onClick={() => {
+                                      const modal = document.createElement('div')
+                                      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px'
+                                      modal.innerHTML = `
+                                        <div style="background:white;border-radius:8px;padding:30px;max-width:800px;max-height:80vh;overflow-y:auto;position:relative">
+                                          <button onclick="this.parentElement.parentElement.remove()" style="position:absolute;top:10px;right:15px;background:none;border:none;font-size:24px;cursor:pointer;color:#666">×</button>
+                                          <h3 style="margin:0 0 20px 0;color:#333">${post.title}</h3>
+                                          <div style="color:#666;font-size:14px;margin-bottom:20px">${post.excerpt}</div>
+                                          <div style="line-height:1.6;color:#333">${post.content}</div>
+                                        </div>
+                                      `
+                                      document.body.appendChild(modal)
+                                    }}
+                                    style={{
+                                      backgroundColor: '#6f42c1',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '6px 12px',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    <i className="fas fa-eye"></i> Preview Article
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: '40px' }}>
+                      <h4 style={{ marginBottom: '20px', color: '#333' }}>Post Approval History</h4>
+                      <div className="table-responsive">
+                        <table className="table table-striped">
+                          <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                            <tr>
+                              <th>Title</th>
+                              <th>Author</th>
+                              <th>Category</th>
+                              <th>Type</th>
+                              <th>Status</th>
+                              <th>Created</th>
+                              <th>Approved</th>
+                              <th>Reason</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {postHistory.map((post) => (
+                              <tr key={post._id}>
+                                <td style={{ maxWidth: '200px' }}>
+                                  <div style={{ fontWeight: '600' }}>{post.title}</div>
+                                  <div style={{ fontSize: '12px', color: '#666' }}>
+                                    {post.type === 'article' ? post.excerpt?.substring(0, 50) : post.description?.substring(0, 50)}...
+                                  </div>
+                                </td>
+                                <td>{post.instructorName || post.instructorId?.name || 'Admin'}</td>
+                                <td>
+                                  <span style={{ 
+                                    backgroundColor: post.category === 'crossfit' ? '#ff5722' : post.category === 'karate' ? '#2196f3' : post.category === 'zumba' ? '#9c27b0' : '#666',
+                                    color: 'white',
+                                    padding: '2px 6px',
+                                    borderRadius: '8px',
+                                    fontSize: '11px',
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {post.category}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span style={{ 
+                                    backgroundColor: post.type === 'article' ? '#6f42c1' : '#17a2b8',
+                                    color: 'white',
+                                    padding: '2px 6px',
+                                    borderRadius: '8px',
+                                    fontSize: '11px',
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {post.type}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span style={{ 
+                                    backgroundColor: post.approvalStatus === 'approved' ? '#28a745' : post.approvalStatus === 'rejected' ? '#dc3545' : '#ffc107',
+                                    color: post.approvalStatus === 'pending' ? '#000' : 'white',
+                                    padding: '4px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '11px',
+                                    textTransform: 'uppercase',
+                                    fontWeight: '600'
+                                  }}>
+                                    {post.approvalStatus || 'approved'}
+                                  </span>
+                                </td>
+                                <td style={{ fontSize: '12px' }}>{new Date(post.createdAt).toLocaleDateString()}</td>
+                                <td style={{ fontSize: '12px' }}>
+                                  {post.approvedAt ? new Date(post.approvedAt).toLocaleDateString() : '-'}
+                                </td>
+                                <td style={{ fontSize: '12px', maxWidth: '150px' }}>
+                                  {post.rejectionReason || '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </>
                 )}

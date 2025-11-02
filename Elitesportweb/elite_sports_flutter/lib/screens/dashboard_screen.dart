@@ -15,6 +15,7 @@ import 'diet_plan_screen.dart';
 import 'exercise_plan_screen.dart';
 import 'videos_screen.dart';
 import 'articles_screen.dart';
+import 'qr_scanner_screen.dart';
 import 'login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -225,11 +226,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Icons.payment,
                 Colors.blue,
               ),
-              _buildStatCard(
-                'Notifications',
-                _notifications.length.toString(),
-                Icons.notifications,
-                Colors.purple,
+              GestureDetector(
+                onTap: () => setState(() => _currentIndex = 5),
+                child: _buildStatCard(
+                  'Notifications',
+                  _notifications.length.toString(),
+                  Icons.notifications,
+                  Colors.purple,
+                ),
               ),
               _buildStatCard(
                 'Member Since',
@@ -254,13 +258,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Expanded(
                 child: _buildQuickActionCard(
+                  'QR Scanner',
+                  Icons.qr_code_scanner,
+                  Colors.blue,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => QRScannerScreen()),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildQuickActionCard(
                   'Diet Plan',
                   Icons.restaurant,
                   Colors.green,
                   () => setState(() => _currentIndex = 7),
                 ),
               ),
-              const SizedBox(width: 16),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
               Expanded(
                 child: _buildQuickActionCard(
                   'Exercise Plan',
@@ -268,6 +288,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Colors.red,
                   () => setState(() => _currentIndex = 8),
                 ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Container(), // Empty space
               ),
             ],
           ),
@@ -330,8 +354,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex > 6 ? 0 : _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        currentIndex: _currentIndex > 5 ? (_currentIndex == 6 ? 5 : 0) : _currentIndex,
+        onTap: (index) {
+          if (index == 5) {
+            // Profile tab clicked
+            setState(() => _currentIndex = 6);
+          } else {
+            setState(() => _currentIndex = index);
+          }
+        },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFF1e3c72),
         unselectedItemColor: Colors.grey,

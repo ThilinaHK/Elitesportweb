@@ -12,6 +12,7 @@ const InstructorSchema = new mongoose.Schema({
   salary: { type: Number, required: true, default: 50000 },
   bio: { type: String },
   image: { type: String },
+  assignedClasses: [{ type: String }], // Array of class IDs
   status: { type: String, default: 'active', enum: ['active', 'inactive'] },
   privileges: {
     // Class Management

@@ -16,6 +16,10 @@ const PostSchema = new mongoose.Schema({
   featuredImage: { type: String }, // Base64 or URL for article image
   tags: [{ type: String }], // Array of tags
   isPublished: { type: Boolean, default: true }, // For draft/published status
+  approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  approvedAt: { type: Date },
+  rejectionReason: { type: String },
   createdAt: { type: Date, default: Date.now }
 })
 

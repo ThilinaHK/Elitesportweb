@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       await dbConnect()
-      const posts = await Post.find({}).sort({ createdAt: -1 })
+      const posts = await Post.find({ approvalStatus: 'approved' }).sort({ createdAt: -1 })
       res.json(posts || [])
     } catch (error) {
       console.error('Posts API error:', error)
@@ -38,6 +38,8 @@ export default async function handler(req, res) {
         }
       }
       
+      // Set approval status to pending for new posts
+      postData.approvalStatus = 'pending'
       const post = await Post.create(postData)
       res.status(201).json(post)
     } catch (error) {
