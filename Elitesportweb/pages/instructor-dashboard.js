@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { showToast } from '../components/Toast';
 
 export default function InstructorDashboard() {
   const [instructor, setInstructor] = useState(null);
@@ -96,7 +97,7 @@ export default function InstructorDashboard() {
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (!instructorId) {
-      alert('Instructor ID not found. Please login again.');
+      showToast('Instructor ID not found. Please login again.', 'error');
       return;
     }
     
@@ -116,14 +117,14 @@ export default function InstructorDashboard() {
         fetchInstructorData(instructorId);
         setShowPostForm(false);
         setPostForm({ title: '', description: '', youtubeUrl: '', category: 'general' });
-        alert('Post created successfully!');
+        showToast('Post created successfully!', 'success');
       } else {
         const errorData = await response.json();
-        alert('Failed to create post: ' + (errorData.error || 'Unknown error'));
+        showToast('Failed to create post: ' + (errorData.error || 'Unknown error'), 'error');
       }
     } catch (error) {
       console.error('Error creating post:', error);
-      alert('Failed to create post: ' + error.message);
+      showToast('Failed to create post: ' + error.message, 'error');
     }
   };
 
@@ -149,13 +150,13 @@ export default function InstructorDashboard() {
           goals: [''],
           restrictions: ['']
         });
-        alert('Diet plan created successfully!');
+        showToast('Diet plan created successfully!', 'success');
       } else {
-        alert('Failed to create diet plan');
+        showToast('Failed to create diet plan', 'error');
       }
     } catch (error) {
       console.error('Error creating diet plan:', error);
-      alert('Failed to create diet plan');
+      showToast('Failed to create diet plan', 'error');
     }
   };
 
@@ -182,13 +183,13 @@ export default function InstructorDashboard() {
           frequency: '',
           goals: ['']
         });
-        alert('Exercise plan created successfully!');
+        showToast('Exercise plan created successfully!', 'success');
       } else {
-        alert('Failed to create exercise plan');
+        showToast('Failed to create exercise plan', 'error');
       }
     } catch (error) {
       console.error('Error creating exercise plan:', error);
-      alert('Failed to create exercise plan');
+      showToast('Failed to create exercise plan', 'error');
     }
   };
 

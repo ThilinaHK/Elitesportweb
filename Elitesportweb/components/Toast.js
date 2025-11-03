@@ -32,16 +32,45 @@ export default function Toast() {
         <div
           key={toast.id}
           style={{
-            backgroundColor: toast.type === 'success' ? '#28a745' : toast.type === 'error' ? '#dc3545' : '#ffc107',
-            color: 'white',
+            backgroundColor: 
+              toast.type === 'success' ? '#28a745' : 
+              toast.type === 'error' ? '#dc3545' : 
+              toast.type === 'warning' ? '#ffc107' : 
+              toast.type === 'info' ? '#17a2b8' : '#6c757d',
+            color: toast.type === 'warning' ? '#212529' : 'white',
             padding: '12px 20px',
-            borderRadius: '5px',
+            borderRadius: '8px',
             marginBottom: '10px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            animation: 'slideIn 0.3s ease-out'
+            animation: 'slideIn 0.3s ease-out',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            minWidth: '300px',
+            maxWidth: '500px'
           }}
         >
-          {toast.message}
+          <span style={{ fontSize: '16px' }}>
+            {toast.type === 'success' ? '✅' : 
+             toast.type === 'error' ? '❌' : 
+             toast.type === 'warning' ? '⚠️' : 
+             toast.type === 'info' ? 'ℹ️' : '📢'}
+          </span>
+          <span style={{ flex: 1 }}>{toast.message}</span>
+          <button
+            onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'inherit',
+              cursor: 'pointer',
+              fontSize: '18px',
+              padding: '0',
+              opacity: '0.7'
+            }}
+          >
+            ×
+          </button>
         </div>
       ))}
       <style jsx>{`

@@ -5093,13 +5093,13 @@ export default function Admin() {
                                       });
                                       if (response.ok) {
                                         fetchInstructors();
-                                        alert('Privileges updated successfully');
+                                        showToast('Privileges updated successfully', 'success');
                                       } else {
-                                        alert('Failed to update privileges');
+                                        showToast('Failed to update privileges', 'error');
                                       }
                                     } catch (error) {
                                       console.error('Error:', error);
-                                      alert('Error updating privileges');
+                                      showToast('Error updating privileges', 'error');
                                     }
                                   }}
                                 />
@@ -5125,13 +5125,13 @@ export default function Admin() {
                                       });
                                       if (response.ok) {
                                         fetchInstructors();
-                                        alert('Privileges updated successfully');
+                                        showToast('Privileges updated successfully', 'success');
                                       } else {
-                                        alert('Failed to update privileges');
+                                        showToast('Failed to update privileges', 'error');
                                       }
                                     } catch (error) {
                                       console.error('Error:', error);
-                                      alert('Error updating privileges');
+                                      showToast('Error updating privileges', 'error');
                                     }
                                   }}
                                 />
@@ -5157,13 +5157,13 @@ export default function Admin() {
                                       });
                                       if (response.ok) {
                                         fetchInstructors();
-                                        alert('Privileges updated successfully');
+                                        showToast('Privileges updated successfully', 'success');
                                       } else {
-                                        alert('Failed to update privileges');
+                                        showToast('Failed to update privileges', 'error');
                                       }
                                     } catch (error) {
                                       console.error('Error:', error);
-                                      alert('Error updating privileges');
+                                      showToast('Error updating privileges', 'error');
                                     }
                                   }}
                                 />
@@ -5189,13 +5189,13 @@ export default function Admin() {
                                       });
                                       if (response.ok) {
                                         fetchInstructors();
-                                        alert('Privileges updated successfully');
+                                        showToast('Privileges updated successfully', 'success');
                                       } else {
-                                        alert('Failed to update privileges');
+                                        showToast('Failed to update privileges', 'error');
                                       }
                                     } catch (error) {
                                       console.error('Error:', error);
-                                      alert('Error updating privileges');
+                                      showToast('Error updating privileges', 'error');
                                     }
                                   }}
                                 />

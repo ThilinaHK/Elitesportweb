@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { showToast } from '../components/Toast';
 
 export default function InstructorLogin() {
   const [formData, setFormData] = useState({ email: '', phone: '' });
@@ -22,10 +23,10 @@ export default function InstructorLogin() {
         localStorage.setItem('instructorId', data.instructor._id);
         router.push('/instructor-dashboard');
       } else {
-        alert(data.message);
+        showToast(data.message, 'error');
       }
     } catch (error) {
-      alert('Login failed');
+      showToast('Login failed', 'error');
     }
     setLoading(false);
   };

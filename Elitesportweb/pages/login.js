@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import Toast from '../components/Toast';
+import { showToast } from '../components/Toast';
 import Navbar from '../components/Navbar';
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', phone: '', username: '' });
   const [loginMethod, setLoginMethod] = useState('email-phone'); // 'email-phone' or 'username'
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: '', type: '' })
+
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [registerForm, setRegisterForm] = useState({
     username: '', fullName: '', email: '', phone: '', nic: '', address: '', dateOfBirth: '',
@@ -31,16 +31,16 @@ export default function Login() {
       const data = await res.json();
       console.log('Login response:', data);
       if (data.success) {
-        setToast({ show: true, message: 'Login successful! Redirecting...', type: 'success' });
+        showToast('Login successful! Redirecting...', 'success');
         console.log('Setting member ID:', data.member._id);
         localStorage.setItem('memberId', data.member._id);
         setTimeout(() => router.push('/member-dashboard'), 1000);
       } else {
         console.log('Login failed:', data.message);
-        setToast({ show: true, message: data.message || 'Invalid credentials', type: 'error' });
+        showToast(data.message || 'Invalid credentials', 'error');
       }
     } catch (error) {
-      setToast({ show: true, message: 'Login failed. Please try again.', type: 'error' });
+      showToast('Login failed. Please try again.', 'error');
     }
     setLoading(false);
   };
@@ -257,15 +257,15 @@ export default function Login() {
                 })
                 
                 if (response.ok) {
-                  setToast({ show: true, message: 'Registration successful! You can now login.', type: 'success' })
+                  showToast('Registration successful! You can now login.', 'success')
                   setShowRegisterModal(false)
                   setRegisterForm({ username: '', fullName: '', email: '', phone: '', nic: '', address: '', dateOfBirth: '', gender: 'male', weight: '', height: '', emergencyContact: '', medicalConditions: '', membershipType: 'trial' })
                 } else {
                   const error = await response.json()
-                  setToast({ show: true, message: error.error || 'Registration failed', type: 'error' })
+                  showToast(error.error || 'Registration failed', 'error')
                 }
               } catch (error) {
-                setToast({ show: true, message: 'Registration failed', type: 'error' })
+                showToast('Registration failed', 'error')
               }
               setRegisterLoading(false)
             }}>
@@ -349,12 +349,7 @@ export default function Login() {
         </div>
       )}
       
-      <Toast 
-        message={toast.message}
-        type={toast.type}
-        show={toast.show}
-        onClose={() => setToast({ show: false, message: '', type: '' })}
-      />
+
     </>
   );
 }
