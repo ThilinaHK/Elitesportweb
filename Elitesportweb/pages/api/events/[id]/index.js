@@ -3,7 +3,7 @@ import Event from '../../../../models/Event'
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
@@ -15,8 +15,11 @@ export default async function handler(req, res) {
 
   switch (req.method) {
     case 'POST':
+    case 'PUT':
       try {
-        const { id: eventId, ...updateData } = req.body
+        const eventId = req.body.id || id
+        const updateData = req.body.id ? { ...req.body } : req.body
+        delete updateData.id
         if (!eventId) {
           return res.status(400).json({ error: 'Event ID is required' })
         }
@@ -42,7 +45,7 @@ export default async function handler(req, res) {
       break
 
     default:
-      res.setHeader('Allow', ['POST', 'DELETE'])
+      res.setHeader('Allow', ['POST', 'PUT', 'DELETE'])
       res.status(405).end(`Method ${req.method} Not Allowed`)
   }
 }
