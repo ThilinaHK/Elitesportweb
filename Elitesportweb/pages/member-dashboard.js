@@ -11,6 +11,8 @@ export default function MemberDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [dietPlans, setDietPlans] = useState([]);
   const [exercisePlans, setExercisePlans] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [activeTab, setActiveTab] = useState('attendance');
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
@@ -30,13 +32,15 @@ export default function MemberDashboard() {
 
   const fetchMemberData = async (id) => {
     try {
-      const [memberRes, attendanceRes, classesRes, notificationsRes, dietRes, exerciseRes] = await Promise.all([
+      const [memberRes, attendanceRes, classesRes, notificationsRes, dietRes, exerciseRes, videosRes, articlesRes] = await Promise.all([
         fetch(`/api/members/${id}`),
         fetch(`/api/attendance/member/${id}?month=${selectedMonth.split('-')[1]}&year=${selectedMonth.split('-')[0]}`),
         fetch(`/api/member-classes/${id}`),
         fetch(`/api/member-notifications/${id}`),
         fetch(`/api/member-diet/${id}`),
-        fetch(`/api/member-exercises/${id}`)
+        fetch(`/api/member-exercises/${id}`),
+        fetch(`/api/videos`),
+        fetch(`/api/articles`)
       ]);
 
       if (memberRes.ok) {
@@ -80,6 +84,16 @@ export default function MemberDashboard() {
         const exerciseData = await exerciseRes.json();
         setExercisePlans(exerciseData.exercises || []);
       }
+
+      if (videosRes.ok) {
+        const videosData = await videosRes.json();
+        setVideos(videosData.videos || []);
+      }
+
+      if (articlesRes.ok) {
+        const articlesData = await articlesRes.json();
+        setArticles(articlesData.articles || []);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -115,9 +129,9 @@ export default function MemberDashboard() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' }}>
         <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', textAlign: 'center' }}>
-          <div style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #007bff', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }}></div>
+          <div style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #11998e', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }}></div>
           <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>Loading Dashboard...</p>
         </div>
       </div>
@@ -125,7 +139,7 @@ export default function MemberDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' }}>
       <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
@@ -137,7 +151,7 @@ export default function MemberDashboard() {
       <div style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', padding: '1.5rem 0', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ width: '50px', height: '50px', background: 'linear-gradient(45deg, #007bff, #0056b3)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
+            <div style={{ width: '50px', height: '50px', background: 'linear-gradient(45deg, #11998e, #0d7377)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
               {member?.fullName?.charAt(0) || 'M'}
             </div>
             <div>
@@ -145,8 +159,8 @@ export default function MemberDashboard() {
               {member && (
                 <div style={{ fontSize: '14px', color: '#7f8c8d', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <span><strong>{member.fullName}</strong></span>
-                  <span style={{ background: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>ID: {member.memberId || 'N/A'}</span>
-                  <span style={{ background: '#27ae60', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>{member.membershipType}</span>
+                  <span style={{ background: '#ff6b6b', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>ID: {member.memberId || 'N/A'}</span>
+                  <span style={{ background: '#11998e', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>{member.membershipType}</span>
                 </div>
               )}
             </div>
@@ -155,14 +169,14 @@ export default function MemberDashboard() {
             onClick={logout} 
             style={{ 
               padding: '0.75rem 1.5rem', 
-              background: 'linear-gradient(45deg, #e74c3c, #c0392b)', 
+              background: 'linear-gradient(45deg, #ff6b6b, #ee5a52)', 
               color: 'white', 
               border: 'none', 
               borderRadius: '8px', 
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: '600',
-              boxShadow: '0 2px 8px rgba(231,76,60,0.3)'
+              boxShadow: '0 2px 8px rgba(255,107,107,0.3)'
             }}
           >
             🚪 Logout
@@ -179,6 +193,8 @@ export default function MemberDashboard() {
             { key: 'notifications', label: '🔔 Notifications', icon: '🔔' },
             { key: 'diet', label: '🥗 Diet Plans', icon: '🥗' },
             { key: 'exercise', label: '💪 Exercise Plans', icon: '💪' },
+            { key: 'videos', label: '🎥 Videos', icon: '🎥' },
+            { key: 'articles', label: '📰 Articles', icon: '📰' },
             { key: 'profile', label: '👤 Profile', icon: '👤' }
           ].map(tab => (
             <button
@@ -216,7 +232,7 @@ export default function MemberDashboard() {
                   setSelectedMonth(e.target.value);
                   fetchMemberData(memberId);
                 }}
-                style={{ padding: '0.75rem', border: '2px solid #667eea', borderRadius: '8px', fontSize: '14px' }}
+                style={{ padding: '0.75rem', border: '2px solid #11998e', borderRadius: '8px', fontSize: '14px' }}
               />
             </div>
 
@@ -237,7 +253,7 @@ export default function MemberDashboard() {
                 <div style={{ fontSize: '24px', fontWeight: '700' }}>{statistics.absent || 0}</div>
                 <div style={{ fontSize: '14px', opacity: '0.9' }}>Absent</div>
               </div>
-              <div style={{ background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)', padding: '1.5rem', borderRadius: '12px', color: 'white', textAlign: 'center' }}>
+              <div style={{ background: 'linear-gradient(135deg, #11998e 0%, #0d7377 100%)', padding: '1.5rem', borderRadius: '12px', color: 'white', textAlign: 'center' }}>
                 <div style={{ fontSize: '32px', marginBottom: '0.5rem' }}>📈</div>
                 <div style={{ fontSize: '24px', fontWeight: '700' }}>{statistics.attendancePercentage || 0}%</div>
                 <div style={{ fontSize: '14px', opacity: '0.9' }}>Attendance Rate</div>
@@ -254,7 +270,7 @@ export default function MemberDashboard() {
               <div style={{ overflowX: 'auto', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white' }}>
                   <thead>
-                    <tr style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+                    <tr style={{ background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', color: 'white' }}>
                       <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Date</th>
                       <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Class</th>
                       <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Status</th>
@@ -270,7 +286,7 @@ export default function MemberDashboard() {
                         <td style={{ padding: '1rem', borderBottom: '1px solid #e9ecef' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ 
-                              background: record.classId?.category === 'crossfit' ? '#ff5722' : record.classId?.category === 'karate' ? '#2196f3' : '#9c27b0',
+                              background: record.classId?.category === 'crossfit' ? '#ff6b6b' : record.classId?.category === 'karate' ? '#4ecdc4' : '#a8e6cf',
                               color: 'white',
                               padding: '0.25rem 0.5rem',
                               borderRadius: '12px',
@@ -325,7 +341,7 @@ export default function MemberDashboard() {
                   <div key={cls._id} style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                       <h3 style={{ margin: 0, color: '#2c3e50' }}>{cls.name}</h3>
-                      <span style={{ background: cls.category === 'crossfit' ? '#ff5722' : cls.category === 'karate' ? '#2196f3' : '#9c27b0', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '12px' }}>
+                      <span style={{ background: cls.category === 'crossfit' ? '#ff6b6b' : cls.category === 'karate' ? '#4ecdc4' : cls.category === 'zumba' ? '#a8e6cf' : '#11998e', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '12px' }}>
                         {cls.category}
                       </span>
                     </div>
@@ -391,8 +407,8 @@ export default function MemberDashboard() {
                       <h3 style={{ margin: 0, color: '#2c3e50', marginBottom: '0.5rem' }}>{diet.planName}</h3>
                       <p style={{ color: '#7f8c8d', margin: 0 }}>{diet.description}</p>
                       <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '14px' }}>
-                        {diet.calories && <span style={{ background: '#28a745', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px' }}>{diet.calories} cal</span>}
-                        {diet.duration && <span style={{ background: '#007bff', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px' }}>{diet.duration}</span>}
+                        {diet.calories && <span style={{ background: '#11998e', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px' }}>{diet.calories} cal</span>}
+                        {diet.duration && <span style={{ background: '#4ecdc4', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px' }}>{diet.duration}</span>}
                       </div>
                     </div>
                     
@@ -450,7 +466,7 @@ export default function MemberDashboard() {
                       <h3 style={{ margin: 0, color: '#2c3e50', marginBottom: '0.5rem' }}>{exercise.planName}</h3>
                       <p style={{ color: '#7f8c8d', margin: 0 }}>{exercise.description}</p>
                       {exercise.duration && (
-                        <span style={{ background: '#007bff', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '12px', marginTop: '0.5rem', display: 'inline-block' }}>
+                        <span style={{ background: '#11998e', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '12px', marginTop: '0.5rem', display: 'inline-block' }}>
                           {exercise.duration}
                         </span>
                       )}
@@ -491,6 +507,98 @@ export default function MemberDashboard() {
           </div>
         )}
 
+        {activeTab === 'videos' && (
+          <div style={{ background: 'rgba(255,255,255,0.95)', padding: '2rem', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+              <div style={{ fontSize: '32px' }}>🎥</div>
+              <h2 style={{ margin: 0, color: '#2c3e50', fontSize: '24px', fontWeight: '700' }}>Training Videos</h2>
+            </div>
+            
+            {videos.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#7f8c8d' }}>
+                <div style={{ fontSize: '48px', marginBottom: '1rem' }}>🎥</div>
+                <p style={{ fontSize: '18px', margin: 0 }}>No videos available</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+                {videos.map(video => (
+                  <div key={video._id} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    {video.thumbnail && (
+                      <img src={video.thumbnail} alt={video.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                    )}
+                    <div style={{ padding: '1.5rem' }}>
+                      <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>{video.title}</h4>
+                      <p style={{ color: '#7f8c8d', fontSize: '14px', marginBottom: '1rem' }}>{video.description}</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <span style={{ background: '#11998e', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '12px' }}>
+                          {video.category}
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#7f8c8d' }}>
+                          {new Date(video.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {video.videoUrl && (
+                        <a href={video.videoUrl} target="_blank" rel="noopener noreferrer" style={{
+                          display: 'inline-block',
+                          background: 'linear-gradient(45deg, #11998e, #4ecdc4)',
+                          color: 'white',
+                          padding: '0.75rem 1.5rem',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          fontSize: '14px',
+                          fontWeight: '600'
+                        }}>
+                          ▶️ Watch Video
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'articles' && (
+          <div style={{ background: 'rgba(255,255,255,0.95)', padding: '2rem', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+              <div style={{ fontSize: '32px' }}>📰</div>
+              <h2 style={{ margin: 0, color: '#2c3e50', fontSize: '24px', fontWeight: '700' }}>Articles & Tips</h2>
+            </div>
+            
+            {articles.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#7f8c8d' }}>
+                <div style={{ fontSize: '48px', marginBottom: '1rem' }}>📰</div>
+                <p style={{ fontSize: '18px', margin: 0 }}>No articles available</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '2rem' }}>
+                {articles.map(article => (
+                  <div key={article._id} style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <h3 style={{ margin: 0, color: '#2c3e50' }}>{article.title}</h3>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <span style={{ background: '#4ecdc4', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '12px' }}>
+                          {article.category}
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#7f8c8d' }}>
+                          {new Date(article.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <p style={{ color: '#7f8c8d', lineHeight: '1.6', marginBottom: '1rem' }}>{article.content}</p>
+                    {article.author && (
+                      <div style={{ fontSize: '14px', color: '#11998e', fontWeight: '600' }}>
+                        By: {article.author}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'profile' && (
           <div style={{ background: 'rgba(255,255,255,0.95)', padding: '2rem', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -502,7 +610,7 @@ export default function MemberDashboard() {
                 onClick={() => isEditing ? handleUpdateProfile() : setIsEditing(true)}
                 style={{
                   padding: '0.75rem 1.5rem',
-                  background: isEditing ? 'linear-gradient(45deg, #28a745, #20c997)' : 'linear-gradient(45deg, #007bff, #0056b3)',
+                  background: isEditing ? 'linear-gradient(45deg, #11998e, #38ef7d)' : 'linear-gradient(45deg, #4ecdc4, #11998e)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',

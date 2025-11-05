@@ -87,6 +87,29 @@ export default function Admin() {
   const [showQuoteForm, setShowQuoteForm] = useState(false)
   const [editingPost, setEditingPost] = useState(null)
   const [showPostForm, setShowPostForm] = useState(false)
+  const [videos, setVideos] = useState([])
+  const [articles, setArticles] = useState([])
+  const [videoForm, setVideoForm] = useState({
+    title: '',
+    description: '',
+    videoUrl: '',
+    thumbnail: '',
+    category: 'crossfit',
+    instructor: '',
+    duration: ''
+  })
+  const [articleForm2, setArticleForm2] = useState({
+    title: '',
+    content: '',
+    author: '',
+    category: 'fitness',
+    excerpt: '',
+    readTime: ''
+  })
+  const [editingVideo, setEditingVideo] = useState(null)
+  const [showVideoForm, setShowVideoForm] = useState(false)
+  const [editingArticle2, setEditingArticle2] = useState(null)
+  const [showArticleForm2, setShowArticleForm2] = useState(false)
   const [bookings, setBookings] = useState([])
   const [notifications, setNotifications] = useState([])
   const [notificationForm, setNotificationForm] = useState({
@@ -278,6 +301,8 @@ export default function Admin() {
     fetchRules()
     fetchContactInfo()
     fetchSmsConfig()
+    fetchVideos()
+    fetchArticles2()
   }, [])
 
   useEffect(() => {
@@ -769,6 +794,119 @@ export default function Admin() {
       }
     } catch (error) {
       console.error('Error fetching SMS config:', error)
+    }
+  }
+
+  const fetchVideos = async () => {
+    try {
+      const response = await fetch('/api/videos')
+      const data = await response.json()
+      setVideos(data.videos || [])
+    } catch (error) {
+      console.error('Error fetching videos:', error)
+    }
+  }
+
+  const fetchArticles2 = async () => {
+    try {
+      const response = await fetch('/api/articles')
+      const data = await response.json()
+      setArticles(data.articles || [])
+    } catch (error) {
+      console.error('Error fetching articles:', error)
+    }
+  }
+
+  const handleVideoSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const url = editingVideo ? `/api/videos/${editingVideo._id}` : '/api/videos'
+      const method = editingVideo ? 'PUT' : 'POST'
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(videoForm)
+      })
+      if (response.ok) {
+        fetchVideos()
+        setShowVideoForm(false)
+        setEditingVideo(null)
+        setVideoForm({ title: '', description: '', videoUrl: '', thumbnail: '', category: 'crossfit', instructor: '', duration: '' })
+        showToast(editingVideo ? 'Video updated successfully!' : 'Video added successfully!', 'success')
+      }
+    } catch (error) {
+      console.error('Error saving video:', error)
+    }
+  }
+
+  const handleArticleSubmit2 = async (e) => {
+    e.preventDefault()
+    try {
+      const url = editingArticle2 ? `/api/articles/${editingArticle2._id}` : '/api/articles'
+      const method = editingArticle2 ? 'PUT' : 'POST'
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(articleForm2)
+      })
+      if (response.ok) {
+        fetchArticles2()
+        setShowArticleForm2(false)
+        setEditingArticle2(null)
+        setArticleForm2({ title: '', content: '', author: '', category: 'fitness', excerpt: '', readTime: '' })
+        showToast(editingArticle2 ? 'Article updated successfully!' : 'Article added successfully!', 'success')
+      }
+    } catch (error) {
+      console.error('Error saving article:', error)
+    }
+  }
+
+  const editVideo = (video) => {
+    setEditingVideo(video)
+    setVideoForm({
+      title: video.title || '',
+      description: video.description || '',
+      videoUrl: video.videoUrl || '',
+      thumbnail: video.thumbnail || '',
+      category: video.category || 'crossfit',
+      instructor: video.instructor || '',
+      duration: video.duration || ''
+    })
+    setShowVideoForm(true)
+  }
+
+  const deleteVideo = async (id) => {
+    if (confirm('Are you sure you want to delete this video?')) {
+      try {
+        await fetch(`/api/videos/${id}`, { method: 'DELETE' })
+        fetchVideos()
+      } catch (error) {
+        console.error('Error deleting video:', error)
+      }
+    }
+  }
+
+  const editArticle2 = (article) => {
+    setEditingArticle2(article)
+    setArticleForm2({
+      title: article.title || '',
+      content: article.content || '',
+      author: article.author || '',
+      category: article.category || 'fitness',
+      excerpt: article.excerpt || '',
+      readTime: article.readTime || ''
+    })
+    setShowArticleForm2(true)
+  }
+
+  const deleteArticle2 = async (id) => {
+    if (confirm('Are you sure you want to delete this article?')) {
+      try {
+        await fetch(`/api/articles/${id}`, { method: 'DELETE' })
+        fetchArticles2()
+      } catch (error) {
+        console.error('Error deleting article:', error)
+      }
     }
   }
 
@@ -1676,6 +1814,19 @@ export default function Admin() {
               Plan Approval
             </button>
             <button 
+              onClick={() => setActiveTab('videos')}
+              style={{
+                backgroundColor: activeTab === 'videos' ? '#f36100' : 'transparent',
+                color: activeTab === 'videos' ? 'white' : '#333',
+                border: 'none',
+                padding: '15px 30px',
+                cursor: 'pointer',
+                borderRadius: '5px 5px 0 0'
+              }}
+            >
+              Videos
+            </button>
+            <button 
               onClick={() => setActiveTab('articles')}
               style={{
                 backgroundColor: activeTab === 'articles' ? '#f36100' : 'transparent',
@@ -1686,7 +1837,7 @@ export default function Admin() {
                 borderRadius: '5px 5px 0 0'
               }}
             >
-              Articles ({posts ? posts.filter(p => p.type === 'article').length : 0})
+              Articles
             </button>
             <button 
               onClick={() => setActiveTab('bookings')}
@@ -5252,6 +5403,330 @@ export default function Admin() {
                 )}
 
                 {activeTab === 'rules' && <RulesTab />}
+
+                {activeTab === 'videos' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Videos Management</h3>
+                      <button 
+                        onClick={() => {
+                          setShowVideoForm(!showVideoForm)
+                          setEditingVideo(null)
+                          setVideoForm({ title: '', description: '', videoUrl: '', thumbnail: '', category: 'crossfit', instructor: '', duration: '' })
+                        }}
+                        style={{
+                          backgroundColor: '#f36100',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px 20px',
+                          borderRadius: '5px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {showVideoForm ? 'Cancel' : 'Add Video'}
+                      </button>
+                    </div>
+                    {showVideoForm && (
+                      <form onSubmit={handleVideoSubmit} style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '5px', marginBottom: '30px' }}>
+                        <div className="row">
+                          <div className="col-md-6">
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Title *</label>
+                            <input 
+                              type="text" 
+                              placeholder="Enter video title" 
+                              value={videoForm.title}
+                              onChange={(e) => setVideoForm({...videoForm, title: e.target.value})}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Video URL *</label>
+                            <input 
+                              type="url" 
+                              placeholder="Enter video URL" 
+                              value={videoForm.videoUrl}
+                              onChange={(e) => setVideoForm({...videoForm, videoUrl: e.target.value})}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Category *</label>
+                            <select 
+                              value={videoForm.category}
+                              onChange={(e) => setVideoForm({...videoForm, category: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            >
+                              <option value="crossfit">CrossFit</option>
+                              <option value="karate">Karate</option>
+                              <option value="zumba">Zumba</option>
+                              <option value="general">General</option>
+                            </select>
+                          </div>
+                          <div className="col-md-6">
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Thumbnail URL</label>
+                            <input 
+                              type="url" 
+                              placeholder="Enter thumbnail URL" 
+                              value={videoForm.thumbnail}
+                              onChange={(e) => setVideoForm({...videoForm, thumbnail: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Instructor</label>
+                            <input 
+                              type="text" 
+                              placeholder="Enter instructor name" 
+                              value={videoForm.instructor}
+                              onChange={(e) => setVideoForm({...videoForm, instructor: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Duration</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g., 15:30" 
+                              value={videoForm.duration}
+                              onChange={(e) => setVideoForm({...videoForm, duration: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                        </div>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Description *</label>
+                        <textarea 
+                          placeholder="Enter video description" 
+                          value={videoForm.description}
+                          onChange={(e) => setVideoForm({...videoForm, description: e.target.value})}
+                          required
+                          style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px', height: '80px' }}
+                        />
+                        <button type="submit" style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '5px', cursor: 'pointer' }}>
+                          {editingVideo ? 'Update Video' : 'Add Video'}
+                        </button>
+                      </form>
+                    )}
+                    <div className="table-responsive">
+                      <table className="table table-striped">
+                        <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                          <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Instructor</th>
+                            <th>Duration</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {videos.map((video) => (
+                            <tr key={video._id}>
+                              <td>{video.title}</td>
+                              <td>
+                                <span style={{ 
+                                  backgroundColor: video.category === 'crossfit' ? '#ff5722' : video.category === 'karate' ? '#2196f3' : video.category === 'zumba' ? '#9c27b0' : '#666',
+                                  color: 'white',
+                                  padding: '4px 8px',
+                                  borderRadius: '12px',
+                                  fontSize: '12px'
+                                }}>
+                                  {video.category}
+                                </span>
+                              </td>
+                              <td>{video.instructor || 'N/A'}</td>
+                              <td>{video.duration || 'N/A'}</td>
+                              <td>{new Date(video.createdAt).toLocaleDateString()}</td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                  <button 
+                                    onClick={() => editVideo(video)}
+                                    style={{
+                                      backgroundColor: '#28a745',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '5px 10px',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={() => deleteVideo(video._id)}
+                                    style={{
+                                      backgroundColor: '#dc3545',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '5px 10px',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+
+                {activeTab === 'articles' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Articles Management</h3>
+                      <button 
+                        onClick={() => {
+                          setShowArticleForm2(!showArticleForm2)
+                          setEditingArticle2(null)
+                          setArticleForm2({ title: '', content: '', author: '', category: 'fitness', excerpt: '', readTime: '' })
+                        }}
+                        style={{
+                          backgroundColor: '#f36100',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px 20px',
+                          borderRadius: '5px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {showArticleForm2 ? 'Cancel' : 'Add Article'}
+                      </button>
+                    </div>
+                    {showArticleForm2 && (
+                      <form onSubmit={handleArticleSubmit2} style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '5px', marginBottom: '30px' }}>
+                        <div className="row">
+                          <div className="col-md-6">
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Title *</label>
+                            <input 
+                              type="text" 
+                              placeholder="Enter article title" 
+                              value={articleForm2.title}
+                              onChange={(e) => setArticleForm2({...articleForm2, title: e.target.value})}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Author *</label>
+                            <input 
+                              type="text" 
+                              placeholder="Enter author name" 
+                              value={articleForm2.author}
+                              onChange={(e) => setArticleForm2({...articleForm2, author: e.target.value})}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Category *</label>
+                            <select 
+                              value={articleForm2.category}
+                              onChange={(e) => setArticleForm2({...articleForm2, category: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            >
+                              <option value="fitness">Fitness</option>
+                              <option value="nutrition">Nutrition</option>
+                              <option value="wellness">Wellness</option>
+                              <option value="training">Training</option>
+                              <option value="general">General</option>
+                            </select>
+                          </div>
+                          <div className="col-md-6">
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Read Time</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g., 5 min read" 
+                              value={articleForm2.readTime}
+                              onChange={(e) => setArticleForm2({...articleForm2, readTime: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Excerpt</label>
+                            <textarea 
+                              placeholder="Enter article excerpt" 
+                              value={articleForm2.excerpt}
+                              onChange={(e) => setArticleForm2({...articleForm2, excerpt: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px', height: '80px' }}
+                            />
+                          </div>
+                        </div>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Content *</label>
+                        <textarea 
+                          placeholder="Enter article content" 
+                          value={articleForm2.content}
+                          onChange={(e) => setArticleForm2({...articleForm2, content: e.target.value})}
+                          required
+                          style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px', height: '150px' }}
+                        />
+                        <button type="submit" style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '5px', cursor: 'pointer' }}>
+                          {editingArticle2 ? 'Update Article' : 'Add Article'}
+                        </button>
+                      </form>
+                    )}
+                    <div className="table-responsive">
+                      <table className="table table-striped">
+                        <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                          <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Read Time</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {articles.map((article) => (
+                            <tr key={article._id}>
+                              <td>{article.title}</td>
+                              <td>{article.author}</td>
+                              <td>
+                                <span style={{ 
+                                  backgroundColor: article.category === 'fitness' ? '#28a745' : article.category === 'nutrition' ? '#fd7e14' : article.category === 'wellness' ? '#6f42c1' : '#17a2b8',
+                                  color: 'white',
+                                  padding: '4px 8px',
+                                  borderRadius: '12px',
+                                  fontSize: '12px'
+                                }}>
+                                  {article.category}
+                                </span>
+                              </td>
+                              <td>{article.readTime || 'N/A'}</td>
+                              <td>{new Date(article.createdAt).toLocaleDateString()}</td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                  <button 
+                                    onClick={() => editArticle2(article)}
+                                    style={{
+                                      backgroundColor: '#28a745',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '5px 10px',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={() => deleteArticle2(article._id)}
+                                    style={{
+                                      backgroundColor: '#dc3545',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '5px 10px',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
 
                 {activeTab === 'password' && (
                   <>
