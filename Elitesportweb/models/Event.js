@@ -6,29 +6,29 @@ const EventSchema = new mongoose.Schema({
   date: { type: Date, required: true },
   time: { type: String, required: true },
   location: { type: String, required: true },
-  category: { type: String, required: true, enum: ['crossfit', 'karate', 'zumba', 'general', 'competition', 'workshop'] },
+  category: { type: String, enum: ['general', 'crossfit', 'karate', 'zumba', 'competition', 'workshop'], default: 'general' },
   maxParticipants: { type: Number, default: 50 },
   currentParticipants: { type: Number, default: 0 },
   price: { type: Number, default: 0 },
-  image: { type: String },
-  status: { type: String, default: 'active', enum: ['active', 'cancelled', 'completed'] },
   instructor: { type: String, required: true },
-  requirements: [{ type: String }],
+  requirements: [String],
+  image: String,
+  status: { type: String, enum: ['active', 'cancelled', 'completed'], default: 'active' },
   forms: [{
-    label: { type: String, required: true },
-    type: { type: String, required: true, enum: ['text', 'email', 'tel', 'number', 'select', 'textarea'] },
-    required: { type: Boolean, default: false },
-    options: [{ type: String }]
+    label: String,
+    type: { type: String, enum: ['text', 'email', 'tel', 'number', 'select', 'textarea'] },
+    required: Boolean,
+    options: [String]
   }],
   participants: [{
     memberName: String,
     phoneNumber: String,
-    registrationDate: { type: Date, default: Date.now }
-  }],
-  isPublished: { type: Boolean, default: true }
-}, { timestamps: true })
+    isMember: String,
+    registrationDate: { type: Date, default: Date.now },
+    formData: mongoose.Schema.Types.Mixed
+  }]
+}, {
+  timestamps: true
+})
 
-// Clear the model cache
-delete mongoose.models.Event
-
-export default mongoose.model('Event', EventSchema)
+export default mongoose.models.Event || mongoose.model('Event', EventSchema)

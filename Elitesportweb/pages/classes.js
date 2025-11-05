@@ -103,7 +103,20 @@ export default function Classes() {
                           <small className="text-muted">Monthly Fee:</small>
                           <div className="fw-bold text-primary">LKR {cls.fees?.monthly || 0}</div>
                         </div>
-                        <button className="btn btn-primary w-100" style={{backgroundColor: getCategoryColor(cls.category), borderColor: getCategoryColor(cls.category)}}>
+                        <button 
+                          className="btn btn-primary w-100" 
+                          style={{backgroundColor: getCategoryColor(cls.category), borderColor: getCategoryColor(cls.category)}}
+                          onClick={() => {
+                            const memberId = localStorage.getItem('memberId')
+                            if (!memberId) {
+                              alert('Please register as a member first to book classes!')
+                              window.location.href = '/register'
+                            } else {
+                              // Proceed with booking
+                              alert('Booking functionality coming soon!')
+                            }
+                          }}
+                        >
                           Book Now
                         </button>
                       </div>

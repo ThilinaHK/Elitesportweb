@@ -110,6 +110,11 @@ export default function Admin() {
   const [showVideoForm, setShowVideoForm] = useState(false)
   const [editingArticle2, setEditingArticle2] = useState(null)
   const [showArticleForm2, setShowArticleForm2] = useState(false)
+  const [showConfigDropdown, setShowConfigDropdown] = useState(false)
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false)
+  const [showGymDropdown, setShowGymDropdown] = useState(false)
+  const [showApprovalsDropdown, setShowApprovalsDropdown] = useState(false)
+  const [showPublicDropdown, setShowPublicDropdown] = useState(false)
   const [bookings, setBookings] = useState([])
   const [notifications, setNotifications] = useState([])
   const [notificationForm, setNotificationForm] = useState({
@@ -198,6 +203,27 @@ export default function Admin() {
   const [articleSearch, setArticleSearch] = useState('')
   const [dietFilter, setDietFilter] = useState('all')
   const [dietSearch, setDietSearch] = useState('')
+  const [events, setEvents] = useState([])
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    category: 'general',
+    maxParticipants: 50,
+    price: 0,
+    instructor: '',
+    requirements: '',
+    image: ''
+  })
+  const [editingEvent, setEditingEvent] = useState(null)
+  const [showEventForm, setShowEventForm] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [eventParticipants, setEventParticipants] = useState([])
+  const [showEventParticipants, setShowEventParticipants] = useState(false)
+  const [progress, setProgress] = useState([])
+  const [selectedMemberProgress, setSelectedMemberProgress] = useState('')
   const [editingBooking, setEditingBooking] = useState(null)
   const [showBookingEditModal, setShowBookingEditModal] = useState(false)
   const [bookingEditForm, setBookingEditForm] = useState({
@@ -303,6 +329,8 @@ export default function Admin() {
     fetchSmsConfig()
     fetchVideos()
     fetchArticles2()
+    fetchEvents()
+    fetchProgress()
   }, [])
 
   useEffect(() => {
@@ -815,6 +843,121 @@ export default function Admin() {
     } catch (error) {
       console.error('Error fetching articles:', error)
     }
+  }
+
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch('/api/events')
+      const data = await response.json()
+      setEvents(data)
+    } catch (error) {
+      console.error('Error fetching events:', error)
+    }
+  }
+
+  const fetchProgress = async () => {
+    try {
+      const response = await fetch('/api/progress')
+      const data = await response.json()
+      setProgress(data)
+    } catch (error) {
+      console.error('Error fetching progress:', error)
+    }
+  }
+
+  const handleEventSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const eventData = {
+        ...eventForm,
+        requirements: eventForm.requirements.split(',').map(r => r.trim()).filter(r => r)
+      }
+      const url = editingEvent ? `/api/events/${editingEvent._id}` : '/api/events'
+      const method = editingEvent ? 'PUT' : 'POST'
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData)
+      })
+      if (response.ok) {
+        fetchEvents()
+        setShowEventForm(false)
+        setEditingEvent(null)
+        setEventForm({
+          title: '',
+          description: '',
+          date: '',
+          time: '',
+          location: '',
+          category: 'general',
+          maxParticipants: 50,
+          price: 0,
+          instructor: '',
+          requirements: '',
+          image: ''
+        })
+        showToast(editingEvent ? 'Event updated successfully!' : 'Event created successfully!', 'success')
+      }
+    } catch (error) {
+      console.error('Error saving event:', error)
+      showToast('Error saving event', 'error')
+    }
+  }
+
+  const editEvent = (event) => {
+    setEditingEvent(event)
+    setEventForm({
+      title: event.title || '',
+      description: event.description || '',
+      date: event.date ? new Date(event.date).toISOString().split('T')[0] : '',
+      time: event.time || '',
+      location: event.location || '',
+      category: event.category || 'general',
+      maxParticipants: event.maxParticipants || 50,
+      price: event.price || 0,
+      instructor: event.instructor || '',
+      requirements: event.requirements ? event.requirements.join(', ') : '',
+      image: event.image || ''
+    })
+    setShowEventForm(true)
+  }
+
+  const deleteEvent = async (id) => {
+    if (confirm('Are you sure you want to delete this event?')) {
+      try {
+        await fetch(`/api/events/${id}`, { method: 'DELETE' })
+        fetchEvents()
+        showToast('Event deleted successfully!', 'success')
+      } catch (error) {
+        console.error('Error deleting event:', error)
+        showToast('Error deleting event', 'error')
+      }
+    }
+  }
+
+  const viewEventParticipants = async (event) => {
+    try {
+      const response = await fetch(`/api/events/${event._id}/participants`)
+      const data = await response.json()
+      setEventParticipants(data.participants || [])
+      setSelectedEvent(event)
+      setShowEventParticipants(true)
+    } catch (error) {
+      console.error('Error fetching participants:', error)
+      showToast('Error fetching participants', 'error')
+    }
+  }
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      crossfit: '#f36100',
+      karate: '#2196f3',
+      zumba: '#9c27b0',
+      competition: '#ff5722',
+      workshop: '#4caf50',
+      general: '#6c757d'
+    }
+    return colors[category] || '#6c757d'
   }
 
   const handleVideoSubmit = async (e) => {
@@ -1654,26 +1797,26 @@ export default function Admin() {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
       </Head>
       
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-        <nav style={{ backgroundColor: '#1a1a1a', padding: '15px 0' }}>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)' }}>
+        <nav style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)', padding: '15px 0', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', borderBottom: '1px solid #e9ecef' }}>
           <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: 'white', margin: 0 }}>Elite Sports Academy - Admin Panel</h2>
+              <h2 style={{ color: '#2c3e50', margin: 0 }}>Elite Sports Academy - Admin Panel</h2>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button 
                   onClick={() => router.push('/dashboard')}
-                  style={{ background: '#28a745', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+                  style={{ background: '#ffffff', color: '#2c3e50', border: '2px solid #4ecdc4', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
                 >
-                  Dashboard
+                  📊 Dashboard
                 </button>
                 <button 
                   onClick={() => {
                     localStorage.removeItem('adminToken')
                     router.push('/admin-login')
                   }}
-                  style={{ background: '#dc3545', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+                  style={{ background: '#dc3545', color: '#ffffff', border: '2px solid #dc3545', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
                 >
-                  Logout
+                  🚪 Logout
                 </button>
               </div>
             </div>
@@ -1681,314 +1824,378 @@ export default function Admin() {
         </nav>
 
         <div className="container" style={{ padding: '20px 0 0 0' }}>
-          <div style={{ borderBottom: '1px solid #ddd', marginBottom: '30px' }}>
-            <button 
-              onClick={() => setActiveTab('members')}
-              style={{
-                backgroundColor: activeTab === 'members' ? '#f36100' : 'transparent',
-                color: activeTab === 'members' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                marginRight: '10px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Members ({members.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab('classes')}
-              style={{
-                backgroundColor: activeTab === 'classes' ? '#f36100' : 'transparent',
-                color: activeTab === 'classes' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Classes ({classes.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab('instructors')}
-              style={{
-                backgroundColor: activeTab === 'instructors' ? '#f36100' : 'transparent',
-                color: activeTab === 'instructors' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Instructors ({instructors.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab('attendance')}
-              style={{
-                backgroundColor: activeTab === 'attendance' ? '#f36100' : 'transparent',
-                color: activeTab === 'attendance' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Attendance
-            </button>
-            <button 
-              onClick={() => setActiveTab('payments')}
-              style={{
-                backgroundColor: activeTab === 'payments' ? '#f36100' : 'transparent',
-                color: activeTab === 'payments' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Payments ({payments.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab('salaries')}
-              style={{
-                backgroundColor: activeTab === 'salaries' ? '#f36100' : 'transparent',
-                color: activeTab === 'salaries' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Salaries ({salaries.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab('sms')}
-              style={{
-                backgroundColor: activeTab === 'sms' ? '#f36100' : 'transparent',
-                color: activeTab === 'sms' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              SMS Gateway
-            </button>
-            <button 
-              onClick={() => setActiveTab('posts')}
-              style={{
-                backgroundColor: activeTab === 'posts' ? '#f36100' : 'transparent',
-                color: activeTab === 'posts' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Video Posts ({posts ? posts.filter(p => p.type !== 'article').length : 0})
-            </button>
-            <button 
-              onClick={() => setActiveTab('post-approval')}
-              style={{
-                backgroundColor: activeTab === 'post-approval' ? '#f36100' : 'transparent',
-                color: activeTab === 'post-approval' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Post Approval
-            </button>
-            <button 
-              onClick={() => setActiveTab('plan-approval')}
-              style={{
-                backgroundColor: activeTab === 'plan-approval' ? '#f36100' : 'transparent',
-                color: activeTab === 'plan-approval' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Plan Approval
-            </button>
-            <button 
-              onClick={() => setActiveTab('videos')}
-              style={{
-                backgroundColor: activeTab === 'videos' ? '#f36100' : 'transparent',
-                color: activeTab === 'videos' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Videos
-            </button>
-            <button 
-              onClick={() => setActiveTab('articles')}
-              style={{
-                backgroundColor: activeTab === 'articles' ? '#f36100' : 'transparent',
-                color: activeTab === 'articles' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Articles
-            </button>
-            <button 
-              onClick={() => setActiveTab('bookings')}
-              style={{
-                backgroundColor: activeTab === 'bookings' ? '#f36100' : 'transparent',
-                color: activeTab === 'bookings' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Bookings ({bookings ? bookings.length : 0})
-            </button>
-            <button 
-              onClick={() => setActiveTab('notifications')}
-              style={{
-                backgroundColor: activeTab === 'notifications' ? '#f36100' : 'transparent',
-                color: activeTab === 'notifications' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Notifications
-            </button>
-            <button 
-              onClick={() => setActiveTab('diets')}
-              style={{
-                backgroundColor: activeTab === 'diets' ? '#f36100' : 'transparent',
-                color: activeTab === 'diets' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Diet Plans ({diets.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab('exercises')}
-              style={{
-                backgroundColor: activeTab === 'exercises' ? '#f36100' : 'transparent',
-                color: activeTab === 'exercises' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Exercise Plans ({exercises.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab('quotes')}
-              style={{
-                backgroundColor: activeTab === 'quotes' ? '#f36100' : 'transparent',
-                color: activeTab === 'quotes' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Quotes
-            </button>
-            <button 
-              onClick={() => setActiveTab('roles')}
-              style={{
-                backgroundColor: activeTab === 'roles' ? '#f36100' : 'transparent',
-                color: activeTab === 'roles' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Instructor Roles
-            </button>
-            <button 
-              onClick={() => setActiveTab('events')}
-              style={{
-                backgroundColor: activeTab === 'events' ? '#f36100' : 'transparent',
-                color: activeTab === 'events' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Events
-            </button>
-            <button 
-              onClick={() => setActiveTab('reports')}
-              style={{
-                backgroundColor: activeTab === 'reports' ? '#f36100' : 'transparent',
-                color: activeTab === 'reports' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Reports
-            </button>
-            <button 
-              onClick={() => setActiveTab('rules')}
-              style={{
-                backgroundColor: activeTab === 'rules' ? '#f36100' : 'transparent',
-                color: activeTab === 'rules' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Rules
-            </button>
-            <button 
-              onClick={() => setActiveTab('contact')}
-              style={{
-                backgroundColor: activeTab === 'contact' ? '#f36100' : 'transparent',
-                color: activeTab === 'contact' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Contact Info
-            </button>
-            <button 
-              onClick={() => setActiveTab('password')}
-              style={{
-                backgroundColor: activeTab === 'password' ? '#f36100' : 'transparent',
-                color: activeTab === 'password' ? 'white' : '#333',
-                border: 'none',
-                padding: '15px 30px',
-                cursor: 'pointer',
-                borderRadius: '5px 5px 0 0'
-              }}
-            >
-              Change Password
-            </button>
+          <div style={{ background: 'linear-gradient(135deg, #6c757d 0%, #495057 100%)', borderRadius: '12px', padding: '20px', marginBottom: '30px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+              {[
+                { key: 'member-management', label: '👥 Member Management', color: '#4ecdc4', isDropdown: true },
+                { key: 'gym-management', label: '🏋️ Gym Management', color: '#74b9ff', isDropdown: true },
+                { key: 'public', label: '🌍 Public Content', color: '#feca57', isDropdown: true },
+                { key: 'approvals', label: '✅ Approvals', color: '#ff9ff3', isDropdown: true },
+                { key: 'notifications', label: 'Notifications', color: '#a8e6cf' },
+                { key: 'reports', label: 'Reports', color: '#6c5ce7' },
+                { key: 'configuration', label: '⚙️ Configuration', color: '#96ceb4', isDropdown: true }
+              ].map(tab => (
+                <div key={tab.key} style={{ position: 'relative', display: 'inline-block' }}>
+                  <button
+                    onClick={() => {
+                      if (tab.key === 'configuration') {
+                        setShowConfigDropdown(!showConfigDropdown)
+                        setShowMemberDropdown(false)
+                        setShowGymDropdown(false)
+                        setShowApprovalsDropdown(false)
+                        setShowPublicDropdown(false)
+                      } else if (tab.key === 'member-management') {
+                        setShowMemberDropdown(!showMemberDropdown)
+                        setShowConfigDropdown(false)
+                        setShowGymDropdown(false)
+                        setShowApprovalsDropdown(false)
+                        setShowPublicDropdown(false)
+                      } else if (tab.key === 'gym-management') {
+                        setShowGymDropdown(!showGymDropdown)
+                        setShowConfigDropdown(false)
+                        setShowMemberDropdown(false)
+                        setShowApprovalsDropdown(false)
+                        setShowPublicDropdown(false)
+                      } else if (tab.key === 'approvals') {
+                        setShowApprovalsDropdown(!showApprovalsDropdown)
+                        setShowConfigDropdown(false)
+                        setShowMemberDropdown(false)
+                        setShowGymDropdown(false)
+                        setShowPublicDropdown(false)
+                      } else if (tab.key === 'public') {
+                        setShowPublicDropdown(!showPublicDropdown)
+                        setShowConfigDropdown(false)
+                        setShowMemberDropdown(false)
+                        setShowGymDropdown(false)
+                        setShowApprovalsDropdown(false)
+                      } else {
+                        setActiveTab(tab.key)
+                        setShowConfigDropdown(false)
+                        setShowMemberDropdown(false)
+                        setShowGymDropdown(false)
+                        setShowApprovalsDropdown(false)
+                        setShowPublicDropdown(false)
+                      }
+                    }}
+                    style={{
+                      background: (tab.key === 'configuration' && ['sms', 'contact', 'password', 'rules'].includes(activeTab)) || (tab.key === 'member-management' && ['members', 'attendance', 'payments', 'diets', 'exercises', 'bookings', 'videos'].includes(activeTab)) || (tab.key === 'gym-management' && ['classes', 'instructors', 'salaries', 'roles'].includes(activeTab)) || (tab.key === 'approvals' && ['post-approval', 'plan-approval'].includes(activeTab)) || (tab.key === 'public' && ['posts', 'articles', 'events', 'quotes'].includes(activeTab)) || activeTab === tab.key ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.15)',
+                      color: (tab.key === 'configuration' && ['sms', 'contact', 'password', 'rules'].includes(activeTab)) || (tab.key === 'member-management' && ['members', 'attendance', 'payments', 'diets', 'exercises', 'bookings', 'videos'].includes(activeTab)) || (tab.key === 'gym-management' && ['classes', 'instructors', 'salaries', 'roles'].includes(activeTab)) || (tab.key === 'approvals' && ['post-approval', 'plan-approval'].includes(activeTab)) || (tab.key === 'public' && ['posts', 'articles', 'events', 'quotes'].includes(activeTab)) || activeTab === tab.key ? '#2c3e50' : '#ffffff',
+                      border: (tab.key === 'configuration' && ['sms', 'contact', 'password', 'rules'].includes(activeTab)) || (tab.key === 'member-management' && ['members', 'attendance', 'payments', 'diets', 'exercises', 'bookings', 'videos'].includes(activeTab)) || (tab.key === 'gym-management' && ['classes', 'instructors', 'salaries', 'roles'].includes(activeTab)) || (tab.key === 'approvals' && ['post-approval', 'plan-approval'].includes(activeTab)) || (tab.key === 'public' && ['posts', 'articles', 'events', 'quotes'].includes(activeTab)) || activeTab === tab.key ? `2px solid ${tab.color}` : '2px solid rgba(255,255,255,0.3)',
+                      padding: '12px 16px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      whiteSpace: 'nowrap',
+                      boxShadow: (tab.key === 'configuration' && ['sms', 'contact', 'password', 'rules'].includes(activeTab)) || (tab.key === 'member-management' && ['members', 'attendance', 'payments', 'diets', 'exercises', 'bookings', 'videos'].includes(activeTab)) || (tab.key === 'gym-management' && ['classes', 'instructors', 'salaries', 'roles'].includes(activeTab)) || (tab.key === 'approvals' && ['post-approval', 'plan-approval'].includes(activeTab)) || (tab.key === 'public' && ['posts', 'articles', 'events', 'quotes'].includes(activeTab)) || activeTab === tab.key ? '0 4px 12px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.1)',
+                      transition: 'all 0.3s ease',
+                      backdropFilter: 'blur(10px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      textShadow: (tab.key === 'configuration' && ['sms', 'contact', 'password', 'rules'].includes(activeTab)) || (tab.key === 'member-management' && ['members', 'attendance', 'payments', 'diets', 'exercises', 'bookings', 'videos'].includes(activeTab)) || (tab.key === 'gym-management' && ['classes', 'instructors', 'salaries', 'roles'].includes(activeTab)) || (tab.key === 'approvals' && ['post-approval', 'plan-approval'].includes(activeTab)) || (tab.key === 'public' && ['posts', 'articles', 'events', 'quotes'].includes(activeTab)) || activeTab === tab.key ? 'none' : '1px 1px 2px rgba(0,0,0,0.8)'
+                    }}
+                  >
+                    {tab.label}
+                    {tab.isDropdown && <span style={{ fontSize: '10px' }}>▼</span>}
+                  </button>
+                  
+                  {tab.key === 'public' && showPublicDropdown && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '0',
+                      background: 'rgba(255,255,255,0.98)',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                      backdropFilter: 'blur(10px)',
+                      zIndex: 1000,
+                      minWidth: '200px',
+                      marginTop: '5px',
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                      {[
+                        { key: 'posts', label: `🎥 Video Posts (${posts ? posts.filter(p => p.type !== 'article').length : 0})`, color: '#feca57' },
+                        { key: 'articles', label: `📰 Articles (${articles.length})`, color: '#ff6b6b' },
+                        { key: 'events', label: `🎉 Events (${events.length})`, color: '#fd79a8' },
+                        { key: 'quotes', label: `💬 Quotes (${quotes.length})`, color: '#ffc107' }
+                      ].map(item => (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            setActiveTab(item.key)
+                            setShowPublicDropdown(false)
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            background: activeTab === item.key ? item.color : 'transparent',
+                            color: activeTab === item.key ? 'white' : '#2c3e50',
+                            border: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            borderRadius: activeTab === item.key ? '6px' : '0',
+                            margin: activeTab === item.key ? '2px' : '0',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'rgba(0,0,0,0.05)'
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'transparent'
+                            }
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {tab.key === 'approvals' && showApprovalsDropdown && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '0',
+                      background: 'rgba(255,255,255,0.98)',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                      backdropFilter: 'blur(10px)',
+                      zIndex: 1000,
+                      minWidth: '180px',
+                      marginTop: '5px',
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                      {[
+                        { key: 'post-approval', label: '📝 Post Approval', color: '#ff9ff3' },
+                        { key: 'plan-approval', label: '📋 Plan Approval', color: '#ff9ff3' }
+                      ].map(item => (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            setActiveTab(item.key)
+                            setShowApprovalsDropdown(false)
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            background: activeTab === item.key ? item.color : 'transparent',
+                            color: activeTab === item.key ? 'white' : '#2c3e50',
+                            border: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            borderRadius: activeTab === item.key ? '6px' : '0',
+                            margin: activeTab === item.key ? '2px' : '0',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'rgba(0,0,0,0.05)'
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'transparent'
+                            }
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {tab.key === 'gym-management' && showGymDropdown && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '0',
+                      background: 'rgba(255,255,255,0.98)',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                      backdropFilter: 'blur(10px)',
+                      zIndex: 1000,
+                      minWidth: '200px',
+                      marginTop: '5px',
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                      {[
+                        { key: 'classes', label: `🏅 Classes (${classes.length})`, color: '#4ecdc4' },
+                        { key: 'instructors', label: `👨‍🏫 Instructors (${instructors.length})`, color: '#4ecdc4' },
+                        { key: 'salaries', label: `💰 Salaries (${salaries.length})`, color: '#45b7d1' },
+                        { key: 'roles', label: '🏆 Instructor Roles', color: '#74b9ff' }
+                      ].map(item => (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            setActiveTab(item.key)
+                            setShowGymDropdown(false)
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            background: activeTab === item.key ? item.color : 'transparent',
+                            color: activeTab === item.key ? 'white' : '#2c3e50',
+                            border: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            borderRadius: activeTab === item.key ? '6px' : '0',
+                            margin: activeTab === item.key ? '2px' : '0',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'rgba(0,0,0,0.05)'
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'transparent'
+                            }
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {tab.key === 'member-management' && showMemberDropdown && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '0',
+                      background: 'rgba(255,255,255,0.98)',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                      backdropFilter: 'blur(10px)',
+                      zIndex: 1000,
+                      minWidth: '200px',
+                      marginTop: '5px',
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                      {[
+                        { key: 'members', label: `👤 Members (${members.length})`, color: '#4ecdc4' },
+                        { key: 'attendance', label: '📊 Attendance', color: '#45b7d1' },
+                        { key: 'payments', label: `💳 Payments (${payments.length})`, color: '#45b7d1' },
+                        { key: 'diets', label: `🥗 Diet Plans (${diets.length})`, color: '#dda0dd' },
+                        { key: 'exercises', label: `💪 Exercise Plans (${exercises.length})`, color: '#dda0dd' },
+                        { key: 'bookings', label: `📅 Bookings (${bookings ? bookings.length : 0})`, color: '#a8e6cf' },
+                        { key: 'videos', label: `🎥 Videos (${videos.length})`, color: '#ff6b6b' },
+                        { key: 'progress', label: '📈 Member Progress', color: '#17a2b8' }
+                      ].map(item => (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            setActiveTab(item.key)
+                            setShowMemberDropdown(false)
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            background: activeTab === item.key ? item.color : 'transparent',
+                            color: activeTab === item.key ? 'white' : '#2c3e50',
+                            border: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            borderRadius: activeTab === item.key ? '6px' : '0',
+                            margin: activeTab === item.key ? '2px' : '0',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'rgba(0,0,0,0.05)'
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'transparent'
+                            }
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {tab.key === 'configuration' && showConfigDropdown && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '0',
+                      background: 'rgba(255,255,255,0.98)',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                      backdropFilter: 'blur(10px)',
+                      zIndex: 1000,
+                      minWidth: '180px',
+                      marginTop: '5px',
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                      {[
+                        { key: 'sms', label: '📱 SMS Gateway', color: '#28a745' },
+                        { key: 'contact', label: '📞 Contact Info', color: '#17a2b8' },
+                        { key: 'password', label: '🔒 Change Password', color: '#dc3545' },
+                        { key: 'rules', label: '⚖️ Rules', color: '#6f42c1' }
+                      ].map(item => (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            setActiveTab(item.key)
+                            setShowConfigDropdown(false)
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            background: activeTab === item.key ? item.color : 'transparent',
+                            color: activeTab === item.key ? 'white' : '#2c3e50',
+                            border: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            borderRadius: activeTab === item.key ? '6px' : '0',
+                            margin: activeTab === item.key ? '2px' : '0',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'rgba(0,0,0,0.05)'
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            if (activeTab !== item.key) {
+                              e.target.style.background = 'transparent'
+                            }
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="container" style={{ padding: '0 0 40px 0' }}>
           <div className="row">
             <div className="col-12">
-              <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+              <div style={{ background: 'rgba(255,255,255,0.98)', borderRadius: '16px', padding: '30px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)', color: '#2c3e50', border: '1px solid #e9ecef' }}>
                 
                 {activeTab === 'members' && (
                   <>
@@ -3698,6 +3905,166 @@ export default function Admin() {
                         </tbody>
                       </table>
                     </div>
+                  </>
+                )}
+
+                {activeTab === 'progress' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Member Progress Tracking</h3>
+                      <select 
+                        value={selectedMemberProgress}
+                        onChange={(e) => setSelectedMemberProgress(e.target.value)}
+                        style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                      >
+                        <option value="">All Members</option>
+                        {members.map(member => (
+                          <option key={member._id} value={member._id}>{member.fullName || member.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedMemberProgress ? (
+                      <div>
+                        {(() => {
+                          const memberProgress = progress.filter(p => p.memberId === selectedMemberProgress).sort((a, b) => new Date(a.date) - new Date(b.date));
+                          const firstRecord = memberProgress[0];
+                          const lastRecord = memberProgress[memberProgress.length - 1];
+                          
+                          return memberProgress.length >= 2 ? (
+                            <div style={{ marginBottom: '30px' }}>
+                              <h4 style={{ color: '#333', marginBottom: '20px' }}>Before & After Comparison</h4>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+                                <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '12px', border: '3px solid #dc3545' }}>
+                                  <h5 style={{ color: '#dc3545', marginBottom: '15px', textAlign: 'center' }}>📅 BEFORE ({new Date(firstRecord.date).toLocaleDateString()})</h5>
+                                  <div style={{ display: 'grid', gap: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                      <strong>Weight:</strong> <span>{firstRecord.weight ? `${firstRecord.weight} kg` : 'N/A'}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                      <strong>Body Fat:</strong> <span>{firstRecord.bodyFat ? `${firstRecord.bodyFat}%` : 'N/A'}</span>
+                                    </div>
+                                    {firstRecord.goals && (
+                                      <div>
+                                        <strong>Goals:</strong>
+                                        <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>{firstRecord.goals}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '12px', border: '3px solid #28a745' }}>
+                                  <h5 style={{ color: '#28a745', marginBottom: '15px', textAlign: 'center' }}>📅 AFTER ({new Date(lastRecord.date).toLocaleDateString()})</h5>
+                                  <div style={{ display: 'grid', gap: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                      <strong>Weight:</strong> 
+                                      <span>
+                                        {lastRecord.weight ? `${lastRecord.weight} kg` : 'N/A'}
+                                        {firstRecord.weight && lastRecord.weight && (
+                                          <span style={{ color: lastRecord.weight < firstRecord.weight ? '#28a745' : '#dc3545', marginLeft: '5px', fontSize: '12px' }}>
+                                            ({lastRecord.weight - firstRecord.weight > 0 ? '+' : ''}{(lastRecord.weight - firstRecord.weight).toFixed(1)} kg)
+                                          </span>
+                                        )}
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                      <strong>Body Fat:</strong> 
+                                      <span>
+                                        {lastRecord.bodyFat ? `${lastRecord.bodyFat}%` : 'N/A'}
+                                        {firstRecord.bodyFat && lastRecord.bodyFat && (
+                                          <span style={{ color: lastRecord.bodyFat < firstRecord.bodyFat ? '#28a745' : '#dc3545', marginLeft: '5px', fontSize: '12px' }}>
+                                            ({lastRecord.bodyFat - firstRecord.bodyFat > 0 ? '+' : ''}{(lastRecord.bodyFat - firstRecord.bodyFat).toFixed(1)}%)
+                                          </span>
+                                        )}
+                                      </span>
+                                    </div>
+                                    {lastRecord.achievements && (
+                                      <div>
+                                        <strong>Latest Achievements:</strong>
+                                        <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>{lastRecord.achievements}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div style={{ background: '#e8f5e8', padding: '15px', borderRadius: '8px', border: '1px solid #c3e6c3', textAlign: 'center' }}>
+                                <h6 style={{ color: '#2d5a2d', margin: '0 0 10px 0' }}>📊 Progress Summary</h6>
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', fontSize: '14px' }}>
+                                  <div><strong>Total Records:</strong> {memberProgress.length}</div>
+                                  <div><strong>Duration:</strong> {Math.ceil((new Date(lastRecord.date) - new Date(firstRecord.date)) / (1000 * 60 * 60 * 24))} days</div>
+                                  {firstRecord.weight && lastRecord.weight && (
+                                    <div><strong>Weight Change:</strong> 
+                                      <span style={{ color: lastRecord.weight < firstRecord.weight ? '#28a745' : '#dc3545' }}>
+                                        {lastRecord.weight - firstRecord.weight > 0 ? '+' : ''}{(lastRecord.weight - firstRecord.weight).toFixed(1)} kg
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ background: '#fff3cd', padding: '15px', borderRadius: '8px', border: '1px solid #ffeaa7', marginBottom: '20px', textAlign: 'center' }}>
+                              <p style={{ margin: 0, color: '#856404' }}>Need at least 2 progress records to show before/after comparison</p>
+                            </div>
+                          );
+                        })()
+                        }
+                        
+                        <h4 style={{ color: '#333', marginBottom: '20px' }}>All Progress Records</h4>
+                        <div className="table-responsive">
+                          <table className="table table-striped">
+                            <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                              <tr>
+                                <th>Date</th>
+                                <th>Weight</th>
+                                <th>Body Fat</th>
+                                <th>Goals</th>
+                                <th>Achievements</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {progress.filter(p => p.memberId === selectedMemberProgress).sort((a, b) => new Date(b.date) - new Date(a.date)).map((prog) => (
+                                <tr key={prog._id}>
+                                  <td>{new Date(prog.date).toLocaleDateString()}</td>
+                                  <td>{prog.weight ? `${prog.weight} kg` : 'N/A'}</td>
+                                  <td>{prog.bodyFat ? `${prog.bodyFat}%` : 'N/A'}</td>
+                                  <td>{prog.goals || 'N/A'}</td>
+                                  <td>{prog.achievements || 'N/A'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="table table-striped">
+                          <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                            <tr>
+                              <th>Member</th>
+                              <th>Date</th>
+                              <th>Weight</th>
+                              <th>Body Fat</th>
+                              <th>Goals</th>
+                              <th>Achievements</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {progress.map((prog) => (
+                              <tr key={prog._id}>
+                                <td>{prog.memberName}</td>
+                                <td>{new Date(prog.date).toLocaleDateString()}</td>
+                                <td>{prog.weight ? `${prog.weight} kg` : 'N/A'}</td>
+                                <td>{prog.bodyFat ? `${prog.bodyFat}%` : 'N/A'}</td>
+                                <td>{prog.goals || 'N/A'}</td>
+                                <td>{prog.achievements || 'N/A'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </>
                 )}
 

@@ -210,7 +210,7 @@ export default function InstructorDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)' }}>
       <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
@@ -243,7 +243,7 @@ export default function InstructorDashboard() {
       `}</style>
       
       {/* Header */}
-      <div style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', padding: '1.5rem 0', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+      <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)', padding: '20px 0', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderBottom: '3px solid #f36100' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ width: '50px', height: '50px', background: 'linear-gradient(45deg, #007bff, #0056b3)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
@@ -290,7 +290,8 @@ export default function InstructorDashboard() {
 
       <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1rem' }}>
         {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', overflowX: 'auto', padding: '0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '12px', backdropFilter: 'blur(10px)' }}>
+        <div style={{ background: 'linear-gradient(135deg, #6c757d 0%, #495057 100%)', borderRadius: '12px', padding: '20px', marginBottom: '30px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
           {[
             { key: 'classes', label: '📚 My Classes', icon: '📚' },
             { key: 'members', label: '👥 Students', icon: '👥' },
@@ -305,21 +306,25 @@ export default function InstructorDashboard() {
               onClick={() => setActiveTab(tab.key)}
               className="tab-button"
               style={{
-                padding: '1rem 1.5rem',
-                background: activeTab === tab.key ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.1)',
-                color: activeTab === tab.key ? '#2c3e50' : 'white',
-                border: 'none',
+                background: activeTab === tab.key ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.15)',
+                color: activeTab === tab.key ? '#2c3e50' : '#ffffff',
+                border: activeTab === tab.key ? '2px solid #f36100' : '2px solid rgba(255,255,255,0.3)',
+                padding: '12px 16px',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                fontSize: '14px',
+                fontSize: '13px',
                 fontWeight: '600',
                 whiteSpace: 'nowrap',
-                boxShadow: activeTab === tab.key ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+                boxShadow: activeTab === tab.key ? '0 4px 12px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease',
+                backdropFilter: 'blur(10px)',
+                textShadow: activeTab === tab.key ? 'none' : '1px 1px 2px rgba(0,0,0,0.8)'
               }}
             >
               {tab.label}
             </button>
           ))}
+          </div>
         </div>
 
         {activeTab === 'classes' && (

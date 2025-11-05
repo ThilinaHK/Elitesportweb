@@ -18,6 +18,14 @@ export default function MemberDashboard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [progress, setProgress] = useState([]);
+  const [progressForm, setProgressForm] = useState({
+    weight: '',
+    bodyFat: '',
+    goals: '',
+    achievements: '',
+    notes: ''
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -32,7 +40,7 @@ export default function MemberDashboard() {
 
   const fetchMemberData = async (id) => {
     try {
-      const [memberRes, attendanceRes, classesRes, notificationsRes, dietRes, exerciseRes, videosRes, articlesRes] = await Promise.all([
+      const [memberRes, attendanceRes, classesRes, notificationsRes, dietRes, exerciseRes, videosRes, articlesRes, progressRes] = await Promise.all([
         fetch(`/api/members/${id}`),
         fetch(`/api/attendance/member/${id}?month=${selectedMonth.split('-')[1]}&year=${selectedMonth.split('-')[0]}`),
         fetch(`/api/member-classes/${id}`),
@@ -40,7 +48,8 @@ export default function MemberDashboard() {
         fetch(`/api/member-diet/${id}`),
         fetch(`/api/member-exercises/${id}`),
         fetch(`/api/videos`),
-        fetch(`/api/articles`)
+        fetch(`/api/articles`),
+        fetch(`/api/progress?memberId=${id}`)
       ]);
 
       if (memberRes.ok) {
@@ -94,6 +103,11 @@ export default function MemberDashboard() {
         const articlesData = await articlesRes.json();
         setArticles(articlesData.articles || []);
       }
+
+      if (progressRes.ok) {
+        const progressData = await progressRes.json();
+        setProgress(progressData || []);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -127,6 +141,29 @@ export default function MemberDashboard() {
     }
   };
 
+  const handleProgressSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...progressForm,
+          memberId: memberId,
+          memberName: member?.fullName || member?.name
+        })
+      });
+      if (response.ok) {
+        fetchMemberData(memberId);
+        setProgressForm({ weight: '', bodyFat: '', goals: '', achievements: '', notes: '' });
+        showToast('Progress updated successfully!', 'success');
+      }
+    } catch (error) {
+      console.error('Error saving progress:', error);
+      showToast('Error saving progress', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' }}>
@@ -139,7 +176,7 @@ export default function MemberDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)' }}>
       <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
@@ -148,7 +185,7 @@ export default function MemberDashboard() {
       `}</style>
       
       {/* Header */}
-      <div style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', padding: '1.5rem 0', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+      <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)', padding: '20px 0', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderBottom: '3px solid #f36100' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ width: '50px', height: '50px', background: 'linear-gradient(45deg, #11998e, #0d7377)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
@@ -186,7 +223,8 @@ export default function MemberDashboard() {
 
       <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1rem' }}>
         {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', overflowX: 'auto', padding: '0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '12px', backdropFilter: 'blur(10px)' }}>
+        <div style={{ background: 'linear-gradient(135deg, #6c757d 0%, #495057 100%)', borderRadius: '12px', padding: '20px', marginBottom: '30px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
           {[
             { key: 'attendance', label: '📊 Attendance', icon: '📊' },
             { key: 'classes', label: '🏋️ My Classes', icon: '🏋️' },
@@ -195,28 +233,34 @@ export default function MemberDashboard() {
             { key: 'exercise', label: '💪 Exercise Plans', icon: '💪' },
             { key: 'videos', label: '🎥 Videos', icon: '🎥' },
             { key: 'articles', label: '📰 Articles', icon: '📰' },
+            { key: 'progress', label: '📈 Progress', icon: '📈' },
             { key: 'profile', label: '👤 Profile', icon: '👤' }
           ].map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               style={{
-                padding: '1rem 1.5rem',
-                background: activeTab === tab.key ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.1)',
-                color: activeTab === tab.key ? '#2c3e50' : 'white',
-                border: 'none',
+                background: activeTab === tab.key ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.15)',
+                color: activeTab === tab.key ? '#2c3e50' : '#ffffff',
+                border: activeTab === tab.key ? '2px solid #f36100' : '2px solid rgba(255,255,255,0.3)',
+                padding: '12px 16px',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                fontSize: '14px',
+                fontSize: '13px',
                 fontWeight: '600',
                 whiteSpace: 'nowrap',
-                boxShadow: activeTab === tab.key ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
+                boxShadow: activeTab === tab.key ? '0 4px 12px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease',
+                backdropFilter: 'blur(10px)',
+                textShadow: activeTab === tab.key ? 'none' : '1px 1px 2px rgba(0,0,0,0.8)'
               }}
             >
               {tab.label}
             </button>
           ))}
+          </div>
         </div>
+
 
         {activeTab === 'attendance' && (
           <div style={{ background: 'rgba(255,255,255,0.95)', padding: '2rem', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)' }}>
@@ -596,6 +640,115 @@ export default function MemberDashboard() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'progress' && (
+          <div style={{ background: 'rgba(255,255,255,0.95)', padding: '2rem', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+              <div style={{ fontSize: '32px' }}>📈</div>
+              <h2 style={{ margin: 0, color: '#2c3e50', fontSize: '24px', fontWeight: '700' }}>My Progress</h2>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+              <div>
+                <h3 style={{ color: '#2c3e50', marginBottom: '1rem' }}>Update Progress</h3>
+                <form onSubmit={handleProgressSubmit} style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#2c3e50' }}>Weight (kg)</label>
+                      <input 
+                        type="number" 
+                        value={progressForm.weight}
+                        onChange={(e) => setProgressForm({...progressForm, weight: e.target.value})}
+                        style={{ width: '100%', padding: '0.75rem', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#2c3e50' }}>Body Fat (%)</label>
+                      <input 
+                        type="number" 
+                        value={progressForm.bodyFat}
+                        onChange={(e) => setProgressForm({...progressForm, bodyFat: e.target.value})}
+                        style={{ width: '100%', padding: '0.75rem', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px' }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#2c3e50' }}>Goals</label>
+                    <textarea 
+                      value={progressForm.goals}
+                      onChange={(e) => setProgressForm({...progressForm, goals: e.target.value})}
+                      style={{ width: '100%', padding: '0.75rem', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px', minHeight: '80px' }}
+                      placeholder="What are your fitness goals?"
+                    />
+                  </div>
+                  
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#2c3e50' }}>Achievements</label>
+                    <textarea 
+                      value={progressForm.achievements}
+                      onChange={(e) => setProgressForm({...progressForm, achievements: e.target.value})}
+                      style={{ width: '100%', padding: '0.75rem', border: '2px solid #e9ecef', borderRadius: '8px', fontSize: '14px', minHeight: '80px' }}
+                      placeholder="What have you achieved recently?"
+                    />
+                  </div>
+                  
+                  <button type="submit" style={{
+                    width: '100%',
+                    padding: '1rem',
+                    background: 'linear-gradient(45deg, #11998e, #38ef7d)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: '600'
+                  }}>
+                    💾 Save Progress
+                  </button>
+                </form>
+              </div>
+              
+              <div>
+                <h3 style={{ color: '#2c3e50', marginBottom: '1rem' }}>Progress History</h3>
+                <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                  {progress.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
+                      <div style={{ fontSize: '48px', marginBottom: '1rem' }}>📈</div>
+                      <p>No progress records yet</p>
+                    </div>
+                  ) : (
+                    progress.map((prog) => (
+                      <div key={prog._id} style={{ background: 'white', padding: '1.5rem', marginBottom: '1rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                          <div style={{ fontSize: '14px', color: '#7f8c8d', fontWeight: '600' }}>
+                            {new Date(prog.date).toLocaleDateString()}
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            {prog.weight && <span style={{ background: '#11998e', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '12px' }}>{prog.weight} kg</span>}
+                            {prog.bodyFat && <span style={{ background: '#4ecdc4', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '12px', fontSize: '12px' }}>{prog.bodyFat}%</span>}
+                          </div>
+                        </div>
+                        {prog.goals && (
+                          <div style={{ marginBottom: '0.5rem' }}>
+                            <strong style={{ color: '#2c3e50' }}>Goals:</strong>
+                            <p style={{ margin: '0.25rem 0 0 0', color: '#7f8c8d', fontSize: '14px' }}>{prog.goals}</p>
+                          </div>
+                        )}
+                        {prog.achievements && (
+                          <div>
+                            <strong style={{ color: '#2c3e50' }}>Achievements:</strong>
+                            <p style={{ margin: '0.25rem 0 0 0', color: '#7f8c8d', fontSize: '14px' }}>{prog.achievements}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

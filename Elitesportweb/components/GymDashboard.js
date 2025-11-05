@@ -73,38 +73,55 @@ export default function GymDashboard() {
 
   const StatCard = ({ title, value, icon, color, subtitle }) => (
     <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-      border: `3px solid ${color}`,
+      background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+      borderRadius: '16px',
+      padding: '28px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+      border: '1px solid rgba(255,255,255,0.2)',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      transition: 'all 0.3s ease',
+      cursor: 'pointer'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-5px)';
+      e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.1)';
     }}>
       <div style={{
         position: 'absolute',
-        top: '-10px',
-        right: '-10px',
-        width: '60px',
-        height: '60px',
-        backgroundColor: color,
-        borderRadius: '50%',
+        top: '20px',
+        right: '20px',
+        width: '50px',
+        height: '50px',
+        background: `linear-gradient(135deg, ${color}20 0%, ${color}10 100%)`,
+        borderRadius: '12px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '24px',
-        opacity: '0.1'
+        fontSize: '20px'
       }}>
         {icon}
       </div>
-      <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px', fontWeight: '500' }}>
+      <div style={{
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '4px',
+        background: `linear-gradient(135deg, ${color} 0%, ${color}80 100%)`
+      }}></div>
+      <div style={{ fontSize: '14px', color: '#6c757d', marginBottom: '12px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         {title}
       </div>
-      <div style={{ fontSize: '32px', fontWeight: '700', color: '#333', marginBottom: '4px' }}>
+      <div style={{ fontSize: '36px', fontWeight: '800', color: '#2c3e50', marginBottom: '8px', lineHeight: '1' }}>
         {value}
       </div>
       {subtitle && (
-        <div style={{ fontSize: '12px', color: color, fontWeight: '500' }}>
+        <div style={{ fontSize: '13px', color: color, fontWeight: '600', padding: '6px 12px', backgroundColor: `${color}15`, borderRadius: '20px', display: 'inline-block' }}>
           {subtitle}
         </div>
       )}
@@ -136,29 +153,73 @@ export default function GymDashboard() {
   );
 
   return (
-    <div style={{ padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+    <div style={{ 
+      padding: '30px', 
+      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 
+      minHeight: '100vh' 
+    }}>
       {/* Header */}
-      <div style={{ marginBottom: '30px' }}>
-        <h1 style={{ 
-          fontSize: '28px', 
-          fontWeight: '700', 
-          color: '#333', 
-          margin: '0 0 8px 0' 
+      <div style={{ 
+        marginBottom: '40px',
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+        borderRadius: '16px',
+        padding: '30px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+        border: '1px solid rgba(255,255,255,0.2)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '15px' }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            background: 'linear-gradient(135deg, #f36100 0%, #ff8c42 100%)',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+            boxShadow: '0 8px 25px rgba(243, 97, 0, 0.3)'
+          }}>
+            📊
+          </div>
+          <div>
+            <h1 style={{ 
+              fontSize: '32px', 
+              fontWeight: '800', 
+              background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: '0 0 5px 0' 
+            }}>
+              Dashboard Overview
+            </h1>
+            <p style={{ 
+              fontSize: '16px', 
+              color: '#6c757d', 
+              margin: 0,
+              fontWeight: '500'
+            }}>
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
+          </div>
+        </div>
+        <div style={{
+          padding: '15px 20px',
+          background: 'linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%)',
+          borderRadius: '12px',
+          border: '1px solid #c3e6c3'
         }}>
-          Elite Sports Academy Dashboard
-        </h1>
-        <p style={{ 
-          fontSize: '16px', 
-          color: '#666', 
-          margin: 0 
-        }}>
-          {new Date().toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
-        </p>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#155724', marginBottom: '5px' }}>
+            🎆 Welcome to Elite Sports Academy Management System
+          </div>
+          <div style={{ fontSize: '13px', color: '#155724' }}>
+            Monitor your gym's performance, manage members, and track revenue all in one place.
+          </div>
+        </div>
       </div>
 
       {/* Key Metrics */}
