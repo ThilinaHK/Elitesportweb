@@ -11,7 +11,7 @@ export const config = {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
@@ -49,21 +49,24 @@ export default async function handler(req, res) {
       console.error('Delete error:', error)
       res.status(400).json({ error: error.message })
     }
-  } else if (req.method === 'PUT') {
+  } else if (req.method === 'POST') {
     try {
-      const updateData = { ...req.body }
+      const { id: instructorId, ...updateData } = req.body
+      if (!instructorId) {
+        return res.status(400).json({ error: 'Instructor ID is required' })
+      }
       
       if (updateData.image && updateData.image.length > 1000000) {
         console.log('Large image detected, processing...')
       }
       
-      let instructor = await Instructor.findByIdAndUpdate(id, updateData, { 
+      let instructor = await Instructor.findByIdAndUpdate(instructorId, updateData, { 
         new: true,
         runValidators: true 
       }).catch(() => null)
       
       if (!instructor) {
-        instructor = await Instructor.findOneAndUpdate({ instructorId: id }, updateData, { 
+        instructor = await Instructor.findOneAndUpdate({ instructorId }, updateData, { 
           new: true,
           runValidators: true 
         })

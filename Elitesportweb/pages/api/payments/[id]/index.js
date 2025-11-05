@@ -11,7 +11,7 @@ export const config = {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
@@ -34,14 +34,18 @@ export default async function handler(req, res) {
     } catch (error) {
       res.status(400).json({ error: error.message })
     }
-  } else if (req.method === 'PUT') {
+  } else if (req.method === 'POST') {
     try {
-      let payment = await Payment.findByIdAndUpdate(id, req.body, { 
+      const { id: paymentId, ...updateData } = req.body
+      if (!paymentId) {
+        return res.status(400).json({ error: 'Payment ID is required' })
+      }
+      let payment = await Payment.findByIdAndUpdate(paymentId, updateData, { 
         new: true, 
         runValidators: true 
       }).catch(() => null)
       if (!payment) {
-        payment = await Payment.findOneAndUpdate({ memberId: id }, req.body, { 
+        payment = await Payment.findOneAndUpdate({ memberId: paymentId }, updateData, { 
           new: true, 
           runValidators: true 
         })

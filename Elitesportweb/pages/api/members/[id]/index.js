@@ -11,7 +11,7 @@ export const config = {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
@@ -35,20 +35,24 @@ export default async function handler(req, res) {
       console.error('Member fetch error:', error)
       res.status(500).json({ success: false, error: error.message, member: null })
     }
-  } else if (req.method === 'PUT') {
+  } else if (req.method === 'POST') {
     try {
       await dbConnect()
       
-      let currentMember = await Member.findById(id).catch(() => null)
+      const { id: memberId, email, phone, username, ...updateData } = req.body
+      if (!memberId) {
+        return res.status(400).json({ error: 'Member ID is required' })
+      }
+      
+      let currentMember = await Member.findById(memberId).catch(() => null)
       if (!currentMember) {
-        currentMember = await Member.findOne({ memberId: id })
+        currentMember = await Member.findOne({ memberId })
       }
       if (!currentMember) {
         return res.status(404).json({ error: 'Member not found' })
       }
       
       const actualId = currentMember._id
-      const { email, phone, username } = req.body
       
       if (email) {
         const existingEmail = await Member.findOne({ 
@@ -80,14 +84,14 @@ export default async function handler(req, res) {
         }
       }
       
-      const updateData = { ...req.body }
-      if (updateData.email) updateData.email = updateData.email.toLowerCase().trim()
-      if (updateData.phone) updateData.phone = updateData.phone.trim()
-      if (updateData.username) updateData.username = updateData.username.toLowerCase().trim()
-      if (updateData.weight) updateData.weight = Number(updateData.weight)
-      if (updateData.height) updateData.height = Number(updateData.height)
+      const finalUpdateData = { ...updateData }
+      if (email) finalUpdateData.email = email.toLowerCase().trim()
+      if (phone) finalUpdateData.phone = phone.trim()
+      if (username) finalUpdateData.username = username.toLowerCase().trim()
+      if (finalUpdateData.weight) finalUpdateData.weight = Number(finalUpdateData.weight)
+      if (finalUpdateData.height) finalUpdateData.height = Number(finalUpdateData.height)
       
-      const member = await Member.findByIdAndUpdate(actualId, updateData, { 
+      const member = await Member.findByIdAndUpdate(actualId, finalUpdateData, { 
         new: true, 
         runValidators: true 
       })
