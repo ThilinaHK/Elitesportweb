@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     res.status(200).json(rules);
   }
 
-  if (req.method === 'PUT') {
+  if (req.method === 'POST') {
     const { doorAccess, paymentReminders } = req.body;
     // In real app, save to database
     res.status(200).json({ success: true, message: 'Rules updated successfully' });

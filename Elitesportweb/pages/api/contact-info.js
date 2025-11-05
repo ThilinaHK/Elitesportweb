@@ -37,7 +37,7 @@ export default async function handler(req, res) {
       
       res.status(200).json(contactInfo)
     } 
-    else if (req.method === 'PUT') {
+    else if (req.method === 'POST') {
       // Update contact information
       const contactData = req.body
       
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       res.status(200).json({ message: 'Contact information updated successfully', result })
     } 
     else {
-      res.setHeader('Allow', ['GET', 'PUT'])
+      res.setHeader('Allow', ['GET', 'POST'])
       res.status(405).end(`Method ${req.method} Not Allowed`)
     }
   } catch (error) {

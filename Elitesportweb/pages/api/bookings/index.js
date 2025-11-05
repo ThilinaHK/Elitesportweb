@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         memberId: member._id
       })
       res.status(201).json(booking)
-    } else if (req.method === 'PUT') {
+    } else if (req.method === 'POST') {
       const { id } = req.query
       const booking = await Booking.findByIdAndUpdate(id, req.body, { new: true })
       res.json(booking)

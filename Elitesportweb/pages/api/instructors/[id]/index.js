@@ -11,7 +11,7 @@ export const config = {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
       console.error('Delete error:', error)
       res.status(400).json({ error: error.message })
     }
-  } else if (req.method === 'POST' || req.method === 'PUT') {
+  } else if (req.method === 'POST') {
     try {
       const instructorId = req.body.id || id
       const updateData = req.body.id ? { ...req.body } : req.body

@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     await dbConnect()
 
-    if (req.method === 'PUT') {
+    if (req.method === 'POST') {
       const booking = await Booking.findByIdAndUpdate(id, req.body, { new: true })
       res.json(booking)
     } else if (req.method === 'DELETE') {
