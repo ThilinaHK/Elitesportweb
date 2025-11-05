@@ -1,6 +1,5 @@
-import dbConnect from '../../../lib/mongodb'
-import Instructor from '../../../models/Instructor'
-import mongoose from 'mongoose'
+import dbConnect from '../../../../lib/mongodb'
+import Instructor from '../../../../models/Instructor'
 
 export const config = {
   api: {
@@ -11,7 +10,6 @@ export const config = {
 }
 
 export default async function handler(req, res) {
-  // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -55,7 +53,6 @@ export default async function handler(req, res) {
     try {
       const updateData = { ...req.body }
       
-      // Handle large image data
       if (updateData.image && updateData.image.length > 1000000) {
         console.log('Large image detected, processing...')
       }

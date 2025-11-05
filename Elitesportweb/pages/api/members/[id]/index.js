@@ -1,6 +1,5 @@
-import dbConnect from '../../../lib/mongodb'
-import Member from '../../../models/Member'
-import cors from '../../../lib/cors'
+import dbConnect from '../../../../lib/mongodb'
+import Member from '../../../../models/Member'
 
 export const config = {
   api: {
@@ -11,7 +10,6 @@ export const config = {
 }
 
 export default async function handler(req, res) {
-  // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -25,12 +23,6 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       await dbConnect()
-    } catch (error) {
-      console.error('Database connection failed:', error)
-      return res.status(500).json({ success: false, error: 'Database connection failed', member: null })
-    }
-    
-    try {
       let member = await Member.findById(id).catch(() => null)
       if (!member) {
         member = await Member.findOne({ memberId: id })
@@ -47,7 +39,6 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
-      // Find the member first (try both _id and memberId)
       let currentMember = await Member.findById(id).catch(() => null)
       if (!currentMember) {
         currentMember = await Member.findOne({ memberId: id })
@@ -57,17 +48,15 @@ export default async function handler(req, res) {
       }
       
       const actualId = currentMember._id
-      
-      // Check if email, phone, or username already exists (excluding current member)
-      const { email, phone, username } = req.body;
+      const { email, phone, username } = req.body
       
       if (email) {
         const existingEmail = await Member.findOne({ 
           email: email.toLowerCase().trim(), 
           _id: { $ne: actualId } 
-        });
+        })
         if (existingEmail) {
-          return res.status(400).json({ error: 'Email already exists' });
+          return res.status(400).json({ error: 'Email already exists' })
         }
       }
       
@@ -75,9 +64,9 @@ export default async function handler(req, res) {
         const existingPhone = await Member.findOne({ 
           phone: phone.trim(), 
           _id: { $ne: actualId } 
-        });
+        })
         if (existingPhone) {
-          return res.status(400).json({ error: `Phone number ${phone} is already registered to another member` });
+          return res.status(400).json({ error: `Phone number ${phone} is already registered to another member` })
         }
       }
       
@@ -85,19 +74,18 @@ export default async function handler(req, res) {
         const existingUsername = await Member.findOne({ 
           username: username.toLowerCase().trim(), 
           _id: { $ne: actualId } 
-        });
+        })
         if (existingUsername) {
-          return res.status(400).json({ error: 'Username already exists' });
+          return res.status(400).json({ error: 'Username already exists' })
         }
       }
       
-      // Clean data before update
-      const updateData = { ...req.body };
-      if (updateData.email) updateData.email = updateData.email.toLowerCase().trim();
-      if (updateData.phone) updateData.phone = updateData.phone.trim();
-      if (updateData.username) updateData.username = updateData.username.toLowerCase().trim();
-      if (updateData.weight) updateData.weight = Number(updateData.weight);
-      if (updateData.height) updateData.height = Number(updateData.height);
+      const updateData = { ...req.body }
+      if (updateData.email) updateData.email = updateData.email.toLowerCase().trim()
+      if (updateData.phone) updateData.phone = updateData.phone.trim()
+      if (updateData.username) updateData.username = updateData.username.toLowerCase().trim()
+      if (updateData.weight) updateData.weight = Number(updateData.weight)
+      if (updateData.height) updateData.height = Number(updateData.height)
       
       const member = await Member.findByIdAndUpdate(actualId, updateData, { 
         new: true, 
