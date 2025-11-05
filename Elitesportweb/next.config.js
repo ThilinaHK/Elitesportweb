@@ -4,12 +4,6 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
-    responseLimit: '8mb',
-  },
   experimental: {
     serverComponentsExternalPackages: ['mongoose']
   }
