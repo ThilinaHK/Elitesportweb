@@ -87,7 +87,7 @@ export default function Classes() {
                         </li>
                         <li className="mb-2">
                           <i className="fas fa-calendar text-success me-2"></i>
-                          {cls.day} at {cls.time}
+                          {cls.days ? cls.days.join(', ') : cls.day} at {cls.time}
                         </li>
                         <li className="mb-2">
                           <i className="fas fa-clock text-success me-2"></i>

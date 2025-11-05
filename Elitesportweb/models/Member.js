@@ -3,8 +3,7 @@ import mongoose from 'mongoose'
 const MemberSchema = new mongoose.Schema({
   memberId: { 
     type: String, 
-    unique: true, 
-    default: () => 'ESA' + Date.now().toString().slice(-8) + Math.floor(Math.random() * 100).toString().padStart(2, '0')
+    unique: true
   },
   username: { type: String, unique: true, sparse: true },
   fullName: { type: String, required: true },

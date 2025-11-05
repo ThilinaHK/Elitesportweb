@@ -2,6 +2,14 @@ import dbConnect from '../../../lib/mongodb'
 import Instructor from '../../../models/Instructor'
 import { fallbackInstructors } from '../../../lib/fallbackData'
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
@@ -30,9 +38,20 @@ export default async function handler(req, res) {
         instructorId
       }
       
+      // Convert numeric fields
+      if (instructorData.experience) instructorData.experience = Number(instructorData.experience)
+      if (instructorData.salary) instructorData.salary = Number(instructorData.salary)
+      
       const instructor = await Instructor.create(instructorData)
       res.status(201).json(instructor)
     } catch (error) {
+      console.error('Instructor creation error:', error)
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: 'Validation failed', details: error.message })
+      }
+      if (error.code === 11000) {
+        return res.status(400).json({ error: 'Duplicate key error', details: error.message })
+      }
       res.status(500).json({ error: error.message })
     }
   } else {

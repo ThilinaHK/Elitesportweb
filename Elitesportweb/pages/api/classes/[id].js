@@ -1,6 +1,14 @@
 import dbConnect from '../../../lib/mongodb'
 import Class from '../../../models/Class'
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
 export default async function handler(req, res) {
   const { id } = req.query
   
@@ -24,14 +32,30 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'PUT') {
     try {
-      const updatedClass = await Class.findByIdAndUpdate(id, req.body, { new: true })
+      const updateData = { ...req.body }
+      
+      // Convert numeric fields
+      if (updateData.duration) updateData.duration = Number(updateData.duration)
+      if (updateData.capacity) updateData.capacity = Number(updateData.capacity)
+      if (updateData.admissionFee) updateData.admissionFee = Number(updateData.admissionFee)
+      
+      const updatedClass = await Class.findByIdAndUpdate(id, updateData, { 
+        new: true, 
+        runValidators: true 
+      })
       if (!updatedClass) {
         return res.status(404).json({ error: 'Class not found' })
       }
       res.status(200).json(updatedClass)
     } catch (error) {
       console.error('Update error:', error)
-      res.status(400).json({ error: error.message })
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: 'Validation failed', details: error.message })
+      }
+      if (error.code === 11000) {
+        return res.status(400).json({ error: 'Duplicate key error', details: error.message })
+      }
+      res.status(500).json({ error: 'Internal server error' })
     }
   } else {
     res.status(405).json({ message: 'Method not allowed' })

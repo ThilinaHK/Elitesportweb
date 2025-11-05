@@ -2,6 +2,14 @@ import dbConnect from '../../../lib/mongodb'
 import Member from '../../../models/Member'
 import cors from '../../../lib/cors'
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
 export default async function handler(req, res) {
   cors(req, res)
   const { id } = req.query
@@ -72,13 +80,22 @@ export default async function handler(req, res) {
       if (updateData.weight) updateData.weight = Number(updateData.weight);
       if (updateData.height) updateData.height = Number(updateData.height);
       
-      const member = await Member.findByIdAndUpdate(id, updateData, { new: true, runValidators: false })
+      const member = await Member.findByIdAndUpdate(id, updateData, { 
+        new: true, 
+        runValidators: true 
+      })
       if (!member) {
         return res.status(404).json({ error: 'Member not found' })
       }
       res.json({ success: true, member })
     } catch (error) {
       console.error('Member update error:', error)
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: 'Validation failed', details: error.message })
+      }
+      if (error.code === 11000) {
+        return res.status(400).json({ error: 'Duplicate key error', details: error.message })
+      }
       res.status(500).json({ error: error.message })
     }
   } else if (req.method === 'DELETE') {

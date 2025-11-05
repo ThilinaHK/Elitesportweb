@@ -1,6 +1,14 @@
 import dbConnect from '../../../lib/mongodb'
 import Notification from '../../../models/Notification'
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
 export default async function handler(req, res) {
   const { id } = req.query
 
@@ -8,12 +16,19 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      const notification = await Notification.findByIdAndUpdate(id, req.body, { new: true })
+      const notification = await Notification.findByIdAndUpdate(id, req.body, { 
+        new: true, 
+        runValidators: true 
+      })
       if (!notification) {
         return res.status(404).json({ message: 'Notification not found' })
       }
       res.status(200).json({ success: true, notification })
     } catch (error) {
+      console.error('Notification update error:', error)
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: 'Validation failed', details: error.message })
+      }
       res.status(500).json({ success: false, message: 'Server error' })
     }
   } else if (req.method === 'DELETE') {

@@ -36,9 +36,19 @@ export default async function handler(req, res) {
         }
       }
       
+      // Generate sequential member ID
+      const lastMember = await Member.findOne({}, {}, { sort: { 'createdAt': -1 } })
+      let nextNumber = 1
+      if (lastMember && lastMember.memberId) {
+        const lastNumber = parseInt(lastMember.memberId.replace('ESA', ''))
+        nextNumber = lastNumber + 1
+      }
+      const memberId = 'ESA' + nextNumber.toString().padStart(6, '0')
+      
       // Convert string numbers to actual numbers and clean username
       const memberData = {
         ...req.body,
+        memberId,
         username: username ? username.toLowerCase().trim() : undefined,
         email: email.toLowerCase().trim(),
         phone: phone.trim(),

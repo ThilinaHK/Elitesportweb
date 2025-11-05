@@ -225,7 +225,7 @@ export default function Admin() {
     name: '',
     category: 'crossfit',
     instructor: '',
-    day: 'Monday',
+    days: ['Monday'],
     time: '',
     duration: 60,
     capacity: 20,
@@ -608,7 +608,7 @@ export default function Admin() {
       filteredClasses = filteredClasses.filter(c => 
         (c.name || '').toLowerCase().includes(searchTerm) ||
         (c.instructor || '').toLowerCase().includes(searchTerm) ||
-        (c.day || '').toLowerCase().includes(searchTerm)
+        (c.days ? c.days.join(' ').toLowerCase().includes(searchTerm) : (c.day || '').toLowerCase().includes(searchTerm))
       )
     }
     
@@ -1220,7 +1220,7 @@ export default function Admin() {
           name: '',
           category: 'crossfit',
           instructor: '',
-          day: 'Monday',
+          days: ['Monday'],
           time: '',
           duration: 60,
           capacity: 20,
@@ -1246,7 +1246,7 @@ export default function Admin() {
       name: cls.name || '',
       category: cls.category || 'crossfit',
       instructor: cls.instructor || '',
-      day: cls.day || 'Monday',
+      days: cls.days || (cls.day ? [cls.day] : ['Monday']),
       time: cls.time || '',
       duration: cls.duration || 60,
       capacity: cls.capacity || 20,
@@ -2030,7 +2030,7 @@ export default function Admin() {
                                       }}
                                       style={{ marginRight: '8px' }}
                                     />
-                                    <span>{cls.name} ({cls.day} {cls.time})</span>
+                                    <span>{cls.name} ({cls.days ? cls.days.join(', ') : cls.day} {cls.time})</span>
                                   </label>
                                 ))}
                               </div>
@@ -2258,7 +2258,7 @@ export default function Admin() {
                             name: '',
                             category: 'crossfit',
                             instructor: '',
-                            day: 'Monday',
+                            days: ['Monday'],
                             time: '',
                             duration: 60,
                             capacity: 20,
@@ -2321,20 +2321,26 @@ export default function Admin() {
                                 <option key={instructor._id} value={instructor.name}>{instructor.name}</option>
                               ))}
                             </select>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Day *</label>
-                            <select 
-                              value={classForm.day}
-                              onChange={(e) => setClassForm({...classForm, day: e.target.value})}
-                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
-                            >
-                              <option value="Monday">Monday</option>
-                              <option value="Tuesday">Tuesday</option>
-                              <option value="Wednesday">Wednesday</option>
-                              <option value="Thursday">Thursday</option>
-                              <option value="Friday">Friday</option>
-                              <option value="Saturday">Saturday</option>
-                              <option value="Sunday">Sunday</option>
-                            </select>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Days *</label>
+                            <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '10px', marginBottom: '15px' }}>
+                              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                                <label key={day} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '14px' }}>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={classForm.days.includes(day)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setClassForm({...classForm, days: [...classForm.days, day]})
+                                      } else {
+                                        setClassForm({...classForm, days: classForm.days.filter(d => d !== day)})
+                                      }
+                                    }}
+                                    style={{ marginRight: '8px' }}
+                                  />
+                                  <span>{day}</span>
+                                </label>
+                              ))}
+                            </div>
                           </div>
                           <div className="col-md-6">
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Time *</label>
@@ -2484,7 +2490,25 @@ export default function Admin() {
                                 </span>
                               </td>
                               <td>{cls.instructor}</td>
-                              <td>{cls.day}</td>
+                              <td>
+                                {cls.days ? (
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                    {cls.days.map(day => (
+                                      <span key={day} style={{ 
+                                        backgroundColor: '#e3f2fd', 
+                                        color: '#1976d2', 
+                                        padding: '2px 6px', 
+                                        borderRadius: '8px',
+                                        fontSize: '11px'
+                                      }}>
+                                        {day.substring(0, 3)}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  cls.day || 'N/A'
+                                )}
+                              </td>
                               <td>{cls.time}</td>
                               <td>{cls.duration} mins</td>
                               <td>LKR {cls.admissionFee || 0}</td>
@@ -2772,7 +2796,7 @@ export default function Admin() {
                                       }}
                                       style={{ marginRight: '8px' }}
                                     />
-                                    <span>{cls.name} ({cls.day} {cls.time})</span>
+                                    <span>{cls.name} ({cls.days ? cls.days.join(', ') : cls.day} {cls.time})</span>
                                   </label>
                                 ))}
                                 {classes.filter(cls => instructorForm.specialization.includes(cls.category)).length === 0 && (
@@ -3118,12 +3142,12 @@ export default function Admin() {
                                 return memberClasses.length > 0 ? 
                                   memberClasses.map(classId => {
                                     const cls = classes.find(c => c._id === classId)
-                                    return cls ? <option key={cls._id} value={cls._id}>{cls.name}</option> : null
+                                    return cls ? <option key={cls._id} value={cls._id}>{cls.name} ({cls.days ? cls.days.join(', ') : cls.day})</option> : null
                                   }) : 
                                   classes.map(cls => <option key={cls._id} value={cls._id}>{cls.name}</option>)
                               })()
                             ) : (
-                              classes.map(cls => <option key={cls._id} value={cls._id}>{cls.name}</option>)
+                              classes.map(cls => <option key={cls._id} value={cls._id}>{cls.name} ({cls.days ? cls.days.join(', ') : cls.day})</option>)
                             )}
                           </select>
                           <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Payment Type *</label>
