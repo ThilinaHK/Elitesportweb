@@ -521,7 +521,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = editingPost ? `/api/posts/${editingPost._id}` : '/api/posts'
-      const method = editingPost ? 'PUT' : 'POST'
+      const method = 'POST'
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -1075,7 +1075,7 @@ export default function Admin() {
   const saveContactInfo = async () => {
     try {
       const response = await fetch('/api/contact-info', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contactInfo)
       })
@@ -1103,7 +1103,7 @@ export default function Admin() {
     
     try {
       const response = await fetch('/api/auth/change-password', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(passwordForm)
       })
@@ -1124,7 +1124,7 @@ export default function Admin() {
   const saveRules = async () => {
     try {
       const response = await fetch('/api/rules', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rules)
       })
@@ -1559,7 +1559,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = editingMember ? `/api/members/${editingMember._id}` : '/api/members'
-      const method = editingMember ? 'PUT' : 'POST'
+      const method = 'POST'
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -1621,7 +1621,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = editingInstructor ? `/api/instructors/${editingInstructor._id}` : '/api/instructors'
-      const method = editingInstructor ? 'PUT' : 'POST'
+      const method = 'POST'
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -4710,7 +4710,7 @@ export default function Admin() {
                                         onClick={async () => {
                                           try {
                                             await fetch(`/api/bookings/${booking._id}`, {
-                                              method: 'PUT',
+                                              method: 'POST',
                                               headers: { 'Content-Type': 'application/json' },
                                               body: JSON.stringify({ status: 'confirmed' })
                                             })
@@ -4736,7 +4736,7 @@ export default function Admin() {
                                         onClick={async () => {
                                           try {
                                             await fetch(`/api/bookings/${booking._id}`, {
-                                              method: 'PUT',
+                                              method: 'POST',
                                               headers: { 'Content-Type': 'application/json' },
                                               body: JSON.stringify({ status: 'cancelled' })
                                             })
@@ -4835,7 +4835,7 @@ export default function Admin() {
                             e.preventDefault()
                             try {
                               await fetch(`/api/bookings/${editingBooking._id}`, {
-                                method: 'PUT',
+                                method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(bookingEditForm)
                               })
@@ -5629,7 +5629,7 @@ export default function Admin() {
                                         canManageClasses: e.target.checked
                                       };
                                       const response = await fetch(`/api/instructors/${instructor._id}/privileges`, {
-                                        method: 'PUT',
+                                        method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ privileges: updatedPrivileges })
                                       });
@@ -5661,7 +5661,7 @@ export default function Admin() {
                                         canViewReports: e.target.checked
                                       };
                                       const response = await fetch(`/api/instructors/${instructor._id}/privileges`, {
-                                        method: 'PUT',
+                                        method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ privileges: updatedPrivileges })
                                       });
@@ -5693,7 +5693,7 @@ export default function Admin() {
                                         canManageMembers: e.target.checked
                                       };
                                       const response = await fetch(`/api/instructors/${instructor._id}/privileges`, {
-                                        method: 'PUT',
+                                        method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ privileges: updatedPrivileges })
                                       });
@@ -5725,7 +5725,7 @@ export default function Admin() {
                                         canViewPayments: e.target.checked
                                       };
                                       const response = await fetch(`/api/instructors/${instructor._id}/privileges`, {
-                                        method: 'PUT',
+                                        method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ privileges: updatedPrivileges })
                                       });
