@@ -40,10 +40,16 @@ export default async function handler(req, res) {
         }
       }
       
-      const post = await Post.findByIdAndUpdate(id, updateData, { 
+      let post = await Post.findByIdAndUpdate(id, updateData, { 
         new: true, 
         runValidators: true 
-      })
+      }).catch(() => null)
+      if (!post) {
+        post = await Post.findOneAndUpdate({ postId: id }, updateData, { 
+          new: true, 
+          runValidators: true 
+        })
+      }
       if (!post) {
         return res.status(404).json({ error: 'Post not found' })
       }

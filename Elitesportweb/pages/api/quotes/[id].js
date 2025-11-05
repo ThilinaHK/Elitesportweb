@@ -14,7 +14,13 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'PUT') {
     try {
-      const quote = await Quote.findByIdAndUpdate(id, req.body, { new: true })
+      let quote = await Quote.findByIdAndUpdate(id, req.body, { new: true }).catch(() => null)
+      if (!quote) {
+        quote = await Quote.findOneAndUpdate({ quoteId: id }, req.body, { new: true })
+      }
+      if (!quote) {
+        return res.status(404).json({ error: 'Quote not found' })
+      }
       res.status(200).json(quote)
     } catch (error) {
       res.status(400).json({ error: error.message })

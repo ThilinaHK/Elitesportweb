@@ -28,10 +28,16 @@ export default async function handler(req, res) {
       if (updateData.amount) updateData.amount = Number(updateData.amount)
       if (updateData.bonus) updateData.bonus = Number(updateData.bonus)
       
-      const salary = await Salary.findByIdAndUpdate(id, updateData, { 
+      let salary = await Salary.findByIdAndUpdate(id, updateData, { 
         new: true, 
         runValidators: true 
-      })
+      }).catch(() => null)
+      if (!salary) {
+        salary = await Salary.findOneAndUpdate({ instructorId: id }, updateData, { 
+          new: true, 
+          runValidators: true 
+        })
+      }
       if (!salary) {
         return res.status(404).json({ error: 'Salary not found' })
       }

@@ -8,7 +8,10 @@ export default async function handler(req, res) {
   switch (req.method) {
     case 'PUT':
       try {
-        const event = await Event.findByIdAndUpdate(id, req.body, { new: true })
+        let event = await Event.findByIdAndUpdate(id, req.body, { new: true }).catch(() => null)
+        if (!event) {
+          event = await Event.findOneAndUpdate({ eventId: id }, req.body, { new: true })
+        }
         if (!event) return res.status(404).json({ error: 'Event not found' })
         res.status(200).json(event)
       } catch (error) {

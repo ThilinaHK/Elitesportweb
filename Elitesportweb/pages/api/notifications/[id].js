@@ -16,10 +16,16 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      const notification = await Notification.findByIdAndUpdate(id, req.body, { 
+      let notification = await Notification.findByIdAndUpdate(id, req.body, { 
         new: true, 
         runValidators: true 
-      })
+      }).catch(() => null)
+      if (!notification) {
+        notification = await Notification.findOneAndUpdate({ memberId: id }, req.body, { 
+          new: true, 
+          runValidators: true 
+        })
+      }
       if (!notification) {
         return res.status(404).json({ message: 'Notification not found' })
       }

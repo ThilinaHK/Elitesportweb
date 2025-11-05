@@ -7,14 +7,26 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      const diet = await Diet.findByIdAndUpdate(id, req.body, { new: true })
+      let diet = await Diet.findByIdAndUpdate(id, req.body, { new: true }).catch(() => null)
+      if (!diet) {
+        diet = await Diet.findOneAndUpdate({ memberId: id }, req.body, { new: true })
+      }
+      if (!diet) {
+        return res.status(404).json({ error: 'Diet plan not found' })
+      }
       res.status(200).json(diet)
     } catch (error) {
       res.status(400).json({ error: error.message })
     }
   } else if (req.method === 'DELETE') {
     try {
-      await Diet.findByIdAndDelete(id)
+      let diet = await Diet.findByIdAndDelete(id).catch(() => null)
+      if (!diet) {
+        diet = await Diet.findOneAndDelete({ memberId: id })
+      }
+      if (!diet) {
+        return res.status(404).json({ error: 'Diet plan not found' })
+      }
       res.status(200).json({ message: 'Diet plan deleted successfully' })
     } catch (error) {
       res.status(400).json({ error: error.message })

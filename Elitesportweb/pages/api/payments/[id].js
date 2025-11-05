@@ -15,17 +15,29 @@ export default async function handler(req, res) {
 
   if (req.method === 'DELETE') {
     try {
-      await Payment.findByIdAndDelete(id)
+      let payment = await Payment.findByIdAndDelete(id).catch(() => null)
+      if (!payment) {
+        payment = await Payment.findOneAndDelete({ memberId: id })
+      }
+      if (!payment) {
+        return res.status(404).json({ error: 'Payment not found' })
+      }
       res.status(200).json({ message: 'Payment deleted successfully' })
     } catch (error) {
       res.status(400).json({ error: error.message })
     }
   } else if (req.method === 'PUT') {
     try {
-      const payment = await Payment.findByIdAndUpdate(id, req.body, { 
+      let payment = await Payment.findByIdAndUpdate(id, req.body, { 
         new: true, 
         runValidators: true 
-      })
+      }).catch(() => null)
+      if (!payment) {
+        payment = await Payment.findOneAndUpdate({ memberId: id }, req.body, { 
+          new: true, 
+          runValidators: true 
+        })
+      }
       if (!payment) {
         return res.status(404).json({ error: 'Payment not found' })
       }

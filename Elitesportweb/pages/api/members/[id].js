@@ -23,7 +23,10 @@ export default async function handler(req, res) {
     }
     
     try {
-      const member = await Member.findById(id)
+      let member = await Member.findById(id).catch(() => null)
+      if (!member) {
+        member = await Member.findOne({ memberId: id })
+      }
       if (!member) {
         return res.status(404).json({ success: false, error: 'Member not found', member: null })
       }
@@ -36,36 +39,44 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
+      // Find the member first (try both _id and memberId)
+      let currentMember = await Member.findById(id).catch(() => null)
+      if (!currentMember) {
+        currentMember = await Member.findOne({ memberId: id })
+      }
+      if (!currentMember) {
+        return res.status(404).json({ error: 'Member not found' })
+      }
+      
+      const actualId = currentMember._id
+      
       // Check if email, phone, or username already exists (excluding current member)
       const { email, phone, username } = req.body;
       
       if (email) {
         const existingEmail = await Member.findOne({ 
           email: email.toLowerCase().trim(), 
-          _id: { $ne: id } 
+          _id: { $ne: actualId } 
         });
         if (existingEmail) {
           return res.status(400).json({ error: 'Email already exists' });
         }
       }
       
-      if (phone) {
-        const currentMember = await Member.findById(id);
-        if (currentMember && currentMember.phone !== phone.trim()) {
-          const existingPhone = await Member.findOne({ 
-            phone: phone.trim(), 
-            _id: { $ne: id } 
-          });
-          if (existingPhone) {
-            return res.status(400).json({ error: `Phone number ${phone} is already registered to another member` });
-          }
+      if (phone && currentMember.phone !== phone.trim()) {
+        const existingPhone = await Member.findOne({ 
+          phone: phone.trim(), 
+          _id: { $ne: actualId } 
+        });
+        if (existingPhone) {
+          return res.status(400).json({ error: `Phone number ${phone} is already registered to another member` });
         }
       }
       
       if (username) {
         const existingUsername = await Member.findOne({ 
           username: username.toLowerCase().trim(), 
-          _id: { $ne: id } 
+          _id: { $ne: actualId } 
         });
         if (existingUsername) {
           return res.status(400).json({ error: 'Username already exists' });
@@ -80,13 +91,10 @@ export default async function handler(req, res) {
       if (updateData.weight) updateData.weight = Number(updateData.weight);
       if (updateData.height) updateData.height = Number(updateData.height);
       
-      const member = await Member.findByIdAndUpdate(id, updateData, { 
+      const member = await Member.findByIdAndUpdate(actualId, updateData, { 
         new: true, 
         runValidators: true 
       })
-      if (!member) {
-        return res.status(404).json({ error: 'Member not found' })
-      }
       res.json({ success: true, member })
     } catch (error) {
       console.error('Member update error:', error)
@@ -101,7 +109,10 @@ export default async function handler(req, res) {
   } else if (req.method === 'DELETE') {
     try {
       await dbConnect()
-      const member = await Member.findByIdAndDelete(id)
+      let member = await Member.findByIdAndDelete(id).catch(() => null)
+      if (!member) {
+        member = await Member.findOneAndDelete({ memberId: id })
+      }
       if (!member) {
         return res.status(404).json({ error: 'Member not found' })
       }

@@ -39,10 +39,16 @@ export default async function handler(req, res) {
       if (updateData.capacity) updateData.capacity = Number(updateData.capacity)
       if (updateData.admissionFee) updateData.admissionFee = Number(updateData.admissionFee)
       
-      const updatedClass = await Class.findByIdAndUpdate(id, updateData, { 
+      let updatedClass = await Class.findByIdAndUpdate(id, updateData, { 
         new: true, 
         runValidators: true 
-      })
+      }).catch(() => null)
+      if (!updatedClass) {
+        updatedClass = await Class.findOneAndUpdate({ classId: id }, updateData, { 
+          new: true, 
+          runValidators: true 
+        })
+      }
       if (!updatedClass) {
         return res.status(404).json({ error: 'Class not found' })
       }

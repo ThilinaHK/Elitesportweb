@@ -7,7 +7,13 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      const exercise = await Exercise.findByIdAndUpdate(id, req.body, { new: true })
+      let exercise = await Exercise.findByIdAndUpdate(id, req.body, { new: true }).catch(() => null)
+      if (!exercise) {
+        exercise = await Exercise.findOneAndUpdate({ memberId: id }, req.body, { new: true })
+      }
+      if (!exercise) {
+        return res.status(404).json({ error: 'Exercise plan not found' })
+      }
       res.json(exercise)
     } catch (error) {
       res.status(500).json({ error: 'Failed to update exercise plan' })

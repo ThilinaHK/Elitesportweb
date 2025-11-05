@@ -7,7 +7,10 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      const video = await Video.findByIdAndUpdate(id, req.body, { new: true });
+      let video = await Video.findByIdAndUpdate(id, req.body, { new: true }).catch(() => null);
+      if (!video) {
+        video = await Video.findOneAndUpdate({ videoId: id }, req.body, { new: true });
+      }
       if (!video) {
         return res.status(404).json({ error: 'Video not found' });
       }
