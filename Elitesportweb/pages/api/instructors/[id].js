@@ -2,6 +2,14 @@ import dbConnect from '../../../lib/mongodb'
 import Instructor from '../../../models/Instructor'
 import mongoose from 'mongoose'
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
 export default async function handler(req, res) {
   const { id } = req.query
   
@@ -41,16 +49,32 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'PUT') {
     try {
-      console.log('Updating instructor:', id, req.body)
-      const instructor = await Instructor.findByIdAndUpdate(id, req.body, { new: true })
+      const updateData = { ...req.body }
+      
+      // Handle large image data
+      if (updateData.image && updateData.image.length > 1000000) {
+        console.log('Large image detected, processing...')
+      }
+      
+      const instructor = await Instructor.findByIdAndUpdate(id, updateData, { 
+        new: true,
+        runValidators: true 
+      })
+      
       if (!instructor) {
         return res.status(404).json({ error: 'Instructor not found' })
       }
-      console.log('Updated instructor:', instructor)
+      
       res.status(200).json(instructor)
     } catch (error) {
       console.error('Update error:', error)
-      res.status(400).json({ error: error.message })
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: 'Validation failed', details: error.message })
+      }
+      if (error.code === 11000) {
+        return res.status(400).json({ error: 'Duplicate key error', details: error.message })
+      }
+      res.status(500).json({ error: 'Internal server error' })
     }
   } else {
     res.status(405).json({ message: 'Method not allowed' })
