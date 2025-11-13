@@ -14,12 +14,24 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const video = new Video(req.body);
+      const { id, ...videoData } = req.body;
+      
+      // If ID provided, update existing video
+      if (id) {
+        const updatedVideo = await Video.findByIdAndUpdate(id, videoData, { new: true });
+        if (!updatedVideo) {
+          return res.status(404).json({ error: 'Video not found' });
+        }
+        return res.status(200).json({ success: true, video: updatedVideo });
+      }
+      
+      // Create new video
+      const video = new Video(videoData);
       await video.save();
       res.status(201).json({ success: true, video });
     } catch (error) {
-      console.error('Error creating video:', error);
-      res.status(500).json({ error: 'Failed to create video' });
+      console.error('Error saving video:', error);
+      res.status(500).json({ error: 'Failed to save video' });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });

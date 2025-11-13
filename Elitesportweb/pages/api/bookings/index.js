@@ -10,7 +10,19 @@ export default async function handler(req, res) {
       const bookings = await Booking.find({}).sort({ bookingDate: -1 })
       res.json(bookings)
     } else if (req.method === 'POST') {
-      const { memberEmail } = req.body
+      const { id, ...bookingData } = req.body
+      
+      // If ID provided, update existing booking
+      if (id) {
+        const updatedBooking = await Booking.findByIdAndUpdate(id, bookingData, { new: true })
+        if (!updatedBooking) {
+          return res.status(404).json({ error: 'Booking not found' })
+        }
+        return res.json(updatedBooking)
+      }
+      
+      // Create new booking
+      const { memberEmail } = bookingData
       
       // Check if user is a registered member
       const member = await Member.findOne({ email: memberEmail })
@@ -22,13 +34,16 @@ export default async function handler(req, res) {
       }
       
       const booking = await Booking.create({
-        ...req.body,
+        ...bookingData,
         memberId: member._id
       })
       res.status(201).json(booking)
-    } else if (req.method === 'POST') {
+    } else if (req.method === 'PUT') {
       const { id } = req.query
       const booking = await Booking.findByIdAndUpdate(id, req.body, { new: true })
+      if (!booking) {
+        return res.status(404).json({ error: 'Booking not found' })
+      }
       res.json(booking)
     } else if (req.method === 'DELETE') {
       const { id } = req.query

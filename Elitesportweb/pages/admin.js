@@ -3922,6 +3922,195 @@ export default function Admin() {
                   </>
                 )}
 
+                {activeTab === 'bookings' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Bookings Management</h3>
+                    </div>
+
+                    {showBookingEditModal && (
+                      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                        <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '10px', width: '500px', maxWidth: '90vw' }}>
+                          <h4 style={{ marginBottom: '20px' }}>Edit Booking</h4>
+                          <form onSubmit={async (e) => {
+                            e.preventDefault()
+                            try {
+                              const response = await fetch('/api/bookings', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: editingBooking._id, ...bookingEditForm })
+                              })
+                              if (response.ok) {
+                                fetchBookings()
+                                setShowBookingEditModal(false)
+                                setEditingBooking(null)
+                                showToast('Booking updated successfully!', 'success')
+                              }
+                            } catch (error) {
+                              console.error('Error updating booking:', error)
+                              showToast('Error updating booking', 'error')
+                            }
+                          }}>
+                            <div style={{ marginBottom: '15px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Member Name:</label>
+                              <input 
+                                type="text" 
+                                value={bookingEditForm.memberName}
+                                onChange={(e) => setBookingEditForm({...bookingEditForm, memberName: e.target.value})}
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              />
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Email:</label>
+                              <input 
+                                type="email" 
+                                value={bookingEditForm.memberEmail}
+                                onChange={(e) => setBookingEditForm({...bookingEditForm, memberEmail: e.target.value})}
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              />
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Phone:</label>
+                              <input 
+                                type="tel" 
+                                value={bookingEditForm.memberPhone}
+                                onChange={(e) => setBookingEditForm({...bookingEditForm, memberPhone: e.target.value})}
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              />
+                            </div>
+                            <div style={{ marginBottom: '20px' }}>
+                              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Status:</label>
+                              <select 
+                                value={bookingEditForm.status}
+                                onChange={(e) => setBookingEditForm({...bookingEditForm, status: e.target.value})}
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  setShowBookingEditModal(false)
+                                  setEditingBooking(null)
+                                }}
+                                style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer' }}
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                type="submit"
+                                style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer' }}
+                              >
+                                Update Booking
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="table-responsive">
+                      <table className="table table-striped">
+                        <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                          <tr>
+                            <th>Member</th>
+                            <th>Class</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th>Booking Date</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bookings.map((booking) => (
+                            <tr key={booking._id}>
+                              <td>
+                                <div><strong>{booking.memberName}</strong></div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>{booking.memberEmail}</div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>{booking.memberPhone}</div>
+                              </td>
+                              <td>
+                                <div><strong>{booking.className}</strong></div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>{booking.classDay}</div>
+                              </td>
+                              <td>{booking.classTime}</td>
+                              <td>
+                                <span style={{ 
+                                  backgroundColor: booking.status === 'confirmed' ? '#d4edda' : booking.status === 'cancelled' ? '#f8d7da' : '#fff3cd',
+                                  color: booking.status === 'confirmed' ? '#155724' : booking.status === 'cancelled' ? '#721c24' : '#856404',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '12px',
+                                  textTransform: 'uppercase'
+                                }}>
+                                  {booking.status}
+                                </span>
+                              </td>
+                              <td>{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                  <button 
+                                    onClick={() => {
+                                      setEditingBooking(booking)
+                                      setBookingEditForm({
+                                        memberName: booking.memberName,
+                                        memberEmail: booking.memberEmail,
+                                        memberPhone: booking.memberPhone,
+                                        status: booking.status
+                                      })
+                                      setShowBookingEditModal(true)
+                                    }}
+                                    style={{
+                                      backgroundColor: '#28a745',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '5px 10px',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={async () => {
+                                      if (confirm('Are you sure you want to delete this booking?')) {
+                                        try {
+                                          await fetch(`/api/bookings/${booking._id}`, { method: 'DELETE' })
+                                          fetchBookings()
+                                          showToast('Booking deleted successfully!', 'success')
+                                        } catch (error) {
+                                          console.error('Error deleting booking:', error)
+                                          showToast('Error deleting booking', 'error')
+                                        }
+                                      }
+                                    }}
+                                    style={{
+                                      backgroundColor: '#dc3545',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '5px 10px',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+
                 {activeTab === 'progress' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
