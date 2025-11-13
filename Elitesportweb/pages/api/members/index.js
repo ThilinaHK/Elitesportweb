@@ -74,7 +74,7 @@ export default async function handler(req, res) {
         if (username) finalUpdateData.username = username.toLowerCase().trim()
         if (finalUpdateData.weight) finalUpdateData.weight = Number(finalUpdateData.weight)
         if (finalUpdateData.height) finalUpdateData.height = Number(finalUpdateData.height)
-        delete finalUpdateData.assignedClasses
+        if (assignedClasses) finalUpdateData.assignedClasses = assignedClasses
         
         const member = await Member.findByIdAndUpdate(actualId, finalUpdateData, { 
           new: true, 
