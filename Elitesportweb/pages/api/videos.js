@@ -33,6 +33,24 @@ export default async function handler(req, res) {
       console.error('Error saving video:', error);
       res.status(500).json({ error: 'Failed to save video' });
     }
+  } else if (req.method === 'DELETE') {
+    try {
+      const { id } = req.body;
+      
+      if (!id) {
+        return res.status(400).json({ error: 'Video ID is required' });
+      }
+      
+      const deletedVideo = await Video.findByIdAndDelete(id);
+      if (!deletedVideo) {
+        return res.status(404).json({ error: 'Video not found' });
+      }
+      
+      res.status(200).json({ success: true, message: 'Video deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      res.status(500).json({ error: 'Failed to delete video' });
+    }
   } else {
     res.status(405).json({ error: 'Method not allowed' });
   }

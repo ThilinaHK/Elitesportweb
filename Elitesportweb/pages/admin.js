@@ -1027,7 +1027,11 @@ export default function Admin() {
   const deleteVideo = async (id) => {
     if (confirm('Are you sure you want to delete this video?')) {
       try {
-        await fetch(`/api/videos/${id}`, { method: 'DELETE' })
+        await fetch('/api/videos', { 
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        })
         fetchVideos()
       } catch (error) {
         console.error('Error deleting video:', error)
