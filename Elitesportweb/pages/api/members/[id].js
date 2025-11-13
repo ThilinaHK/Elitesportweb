@@ -1,52 +1,26 @@
 import dbConnect from '../../../lib/mongodb'
 import Member from '../../../models/Member'
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-}
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
-  
+
   const { id } = req.query
 
-  if (req.method === 'GET') {
-    try {
-      await dbConnect()
-      let member = await Member.findById(id).catch(() => null)
-      if (!member) {
-        member = await Member.findOne({ memberId: id })
-      }
-      if (!member) {
-        return res.status(404).json({ success: false, error: 'Member not found', member: null })
-      }
-      res.json({ success: true, member })
-    } catch (error) {
-      console.error('Member fetch error:', error)
-      res.status(500).json({ success: false, error: error.message, member: null })
-    }
-  } else if (req.method === 'POST') {
+  if (req.method === 'POST' || req.method === 'PUT') {
     try {
       await dbConnect()
       
-      const { id: memberId, email, phone, username, ...updateData } = req.body
-      if (!memberId) {
-        return res.status(400).json({ error: 'Member ID is required in request body' })
-      }
+      const { email, phone, username, ...updateData } = req.body
       
-      let currentMember = await Member.findById(memberId).catch(() => null)
+      let currentMember = await Member.findById(id).catch(() => null)
       if (!currentMember) {
-        currentMember = await Member.findOne({ memberId })
+        currentMember = await Member.findOne({ memberId: id })
       }
       if (!currentMember) {
         return res.status(404).json({ error: 'Member not found' })
@@ -95,30 +69,10 @@ export default async function handler(req, res) {
         new: true, 
         runValidators: true 
       })
-      res.json({ success: true, member })
+      
+      return res.json({ success: true, member })
     } catch (error) {
       console.error('Member update error:', error)
-      if (error.name === 'ValidationError') {
-        return res.status(400).json({ error: 'Validation failed', details: error.message })
-      }
-      if (error.code === 11000) {
-        return res.status(400).json({ error: 'Duplicate key error', details: error.message })
-      }
-      res.status(500).json({ error: error.message })
-    }
-  } else if (req.method === 'DELETE') {
-    try {
-      await dbConnect()
-      let member = await Member.findByIdAndDelete(id).catch(() => null)
-      if (!member) {
-        member = await Member.findOneAndDelete({ memberId: id })
-      }
-      if (!member) {
-        return res.status(404).json({ error: 'Member not found' })
-      }
-      res.json({ message: 'Member deleted successfully' })
-    } catch (error) {
-      console.error('Member delete error:', error)
       res.status(500).json({ error: error.message })
     }
   } else {
