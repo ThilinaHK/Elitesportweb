@@ -21,6 +21,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Member not found' });
     }
 
+    res.setHeader('Set-Cookie', `memberId=${member.memberId}; Path=/; HttpOnly; Max-Age=86400`);
     res.status(200).json({
       success: true,
       member: {

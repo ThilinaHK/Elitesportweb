@@ -29,33 +29,28 @@ export default function MemberDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const storedMemberId = localStorage.getItem('memberId');
-    if (!storedMemberId) {
-      router.push('/member-login');
-      return;
-    }
-    setMemberId(storedMemberId);
-    fetchMemberData(storedMemberId);
+    fetchMemberData();
   }, []);
 
-  const fetchMemberData = async (id) => {
+  const fetchMemberData = async () => {
     try {
       const [memberRes, attendanceRes, classesRes, notificationsRes, dietRes, exerciseRes, videosRes, articlesRes, progressRes] = await Promise.all([
-        fetch(`/api/members/${id}`),
-        fetch(`/api/attendance/member/${id}?month=${selectedMonth.split('-')[1]}&year=${selectedMonth.split('-')[0]}`),
-        fetch(`/api/member-classes/${id}`),
-        fetch(`/api/member-notifications/${id}`),
-        fetch(`/api/member-diet/${id}`),
-        fetch(`/api/member-exercises/${id}`),
+        fetch(`/api/member-profile`),
+        fetch(`/api/member-attendance?month=${selectedMonth.split('-')[1]}&year=${selectedMonth.split('-')[0]}`),
+        fetch(`/api/member-classes`),
+        fetch(`/api/member-notifications`),
+        fetch(`/api/member-diet`),
+        fetch(`/api/member-exercises`),
         fetch(`/api/videos`),
         fetch(`/api/articles`),
-        fetch(`/api/progress?memberId=${id}`)
+        fetch(`/api/member-progress`)
       ]);
 
       if (memberRes.ok) {
         const memberData = await memberRes.json();
         const member = memberData.member || memberData;
         setMember(member);
+        setMemberId(member._id);
         setEditForm({
           fullName: member.fullName || '',
           phone: member.phone || '',
@@ -66,6 +61,9 @@ export default function MemberDashboard() {
           emergencyContact: member.emergencyContact || '',
           medicalConditions: member.medicalConditions || ''
         });
+      } else {
+        router.push('/member-login');
+        return;
       }
 
       if (attendanceRes.ok) {
@@ -114,14 +112,14 @@ export default function MemberDashboard() {
     setLoading(false);
   };
 
-  const logout = () => {
-    localStorage.removeItem('memberId');
+  const logout = async () => {
+    await fetch('/api/member-logout', { method: 'POST' });
     router.push('/');
   };
 
   const handleUpdateProfile = async () => {
     try {
-      const response = await fetch(`/api/members/${memberId}`, {
+      const response = await fetch(`/api/member-profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm)
@@ -144,17 +142,13 @@ export default function MemberDashboard() {
   const handleProgressSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/progress', {
+      const response = await fetch('/api/member-progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...progressForm,
-          memberId: memberId,
-          memberName: member?.fullName || member?.name
-        })
+        body: JSON.stringify(progressForm)
       });
       if (response.ok) {
-        fetchMemberData(memberId);
+        fetchMemberData();
         setProgressForm({ weight: '', bodyFat: '', goals: '', achievements: '', notes: '' });
         showToast('Progress updated successfully!', 'success');
       }
@@ -274,7 +268,7 @@ export default function MemberDashboard() {
                 value={selectedMonth}
                 onChange={(e) => {
                   setSelectedMonth(e.target.value);
-                  fetchMemberData(memberId);
+                  fetchMemberData();
                 }}
                 style={{ padding: '0.75rem', border: '2px solid #11998e', borderRadius: '8px', fontSize: '14px' }}
               />

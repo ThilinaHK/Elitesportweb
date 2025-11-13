@@ -27,8 +27,6 @@ export default function MemberLogin() {
       });
       
       if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('memberId', data.member._id);
         router.push('/member-dashboard');
       } else {
         setError('Invalid Member ID. Please check and try again.');
