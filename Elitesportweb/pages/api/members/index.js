@@ -16,9 +16,65 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
-      // Check if email, phone, or username already exists
-      const { email, phone, username } = req.body;
+      const { id, email, phone, username, ...updateData } = req.body
       
+      // If ID provided, update existing member
+      if (id) {
+        let currentMember = await Member.findById(id).catch(() => null)
+        if (!currentMember) {
+          currentMember = await Member.findOne({ memberId: id })
+        }
+        if (!currentMember) {
+          return res.status(404).json({ error: 'Member not found' })
+        }
+        
+        const actualId = currentMember._id
+        
+        if (email) {
+          const existingEmail = await Member.findOne({ 
+            email: email.toLowerCase().trim(), 
+            _id: { $ne: actualId } 
+          })
+          if (existingEmail) {
+            return res.status(400).json({ error: 'Email already exists' })
+          }
+        }
+        
+        if (phone && currentMember.phone !== phone.trim()) {
+          const existingPhone = await Member.findOne({ 
+            phone: phone.trim(), 
+            _id: { $ne: actualId } 
+          })
+          if (existingPhone) {
+            return res.status(400).json({ error: `Phone number ${phone} is already registered to another member` })
+          }
+        }
+        
+        if (username) {
+          const existingUsername = await Member.findOne({ 
+            username: username.toLowerCase().trim(), 
+            _id: { $ne: actualId } 
+          })
+          if (existingUsername) {
+            return res.status(400).json({ error: 'Username already exists' })
+          }
+        }
+        
+        const finalUpdateData = { ...updateData }
+        if (email) finalUpdateData.email = email.toLowerCase().trim()
+        if (phone) finalUpdateData.phone = phone.trim()
+        if (username) finalUpdateData.username = username.toLowerCase().trim()
+        if (finalUpdateData.weight) finalUpdateData.weight = Number(finalUpdateData.weight)
+        if (finalUpdateData.height) finalUpdateData.height = Number(finalUpdateData.height)
+        
+        const member = await Member.findByIdAndUpdate(actualId, finalUpdateData, { 
+          new: true, 
+          runValidators: true 
+        })
+        return res.json({ success: true, member })
+      }
+      
+      // Create new member if no ID provided
       const existingEmail = await Member.findOne({ email });
       if (existingEmail) {
         return res.status(400).json({ error: 'Email already exists' });
@@ -61,7 +117,7 @@ export default async function handler(req, res) {
       console.log('Member created successfully:', member._id)
       res.status(201).json(member)
     } catch (error) {
-      console.error('Member creation error:', error)
+      console.error('Member operation error:', error)
       res.status(500).json({ error: error.message })
     }
   } else {
