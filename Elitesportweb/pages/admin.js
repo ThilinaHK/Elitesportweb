@@ -1558,12 +1558,13 @@ export default function Admin() {
   const handleMemberSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingMember ? `/api/members/${editingMember._id}` : '/api/members'
+      const url = '/api/members'
       const method = 'POST'
+      const bodyData = editingMember ? { ...memberForm, id: editingMember._id } : memberForm
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(memberForm)
+        body: JSON.stringify(bodyData)
       })
       const data = await response.json()
       if (response.ok) {
