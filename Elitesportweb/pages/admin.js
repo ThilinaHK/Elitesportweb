@@ -1388,12 +1388,13 @@ export default function Admin() {
   const handleDietSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingDiet ? `/api/diets/${editingDiet._id}` : '/api/diets'
+      const url = '/api/diets'
       const method = editingDiet ? 'PUT' : 'POST'
+      const bodyData = editingDiet ? { ...dietForm, id: editingDiet._id } : dietForm
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dietForm)
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchDiets()
@@ -1486,7 +1487,7 @@ export default function Admin() {
   const handleClassSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingClass ? `/api/classes/${editingClass._id}` : '/api/classes'
+      const url = '/api/classes'
       const method = editingClass ? 'PUT' : 'POST'
       const response = await fetch(url, {
         method,
@@ -1621,16 +1622,18 @@ export default function Admin() {
   const handleInstructorSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingInstructor ? `/api/instructors/${editingInstructor._id}` : '/api/instructors'
+      const url = '/api/instructors'
       const method = 'POST'
+      const bodyData = {
+        ...instructorForm,
+        qualifications: instructorForm.qualifications.filter(q => q.trim() !== ''),
+        assignedClasses: instructorForm.assignedClasses || []
+      }
+      if (editingInstructor) bodyData.id = editingInstructor._id
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...instructorForm,
-          qualifications: instructorForm.qualifications.filter(q => q.trim() !== ''),
-          assignedClasses: instructorForm.assignedClasses || []
-        })
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchInstructors()
@@ -1678,12 +1681,13 @@ export default function Admin() {
   const handlePaymentSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingPayment ? `/api/payments/${editingPayment._id}` : '/api/payments'
+      const url = '/api/payments'
       const method = editingPayment ? 'PUT' : 'POST'
+      const bodyData = editingPayment ? { ...paymentForm, id: editingPayment._id } : paymentForm
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentForm)
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchPayments()
@@ -1739,12 +1743,14 @@ export default function Admin() {
     e.preventDefault()
     const totalAmount = parseFloat(salaryForm.baseSalary) + parseFloat(salaryForm.bonuses || 0) - parseFloat(salaryForm.deductions || 0)
     try {
-      const url = editingSalary ? `/api/salaries/${editingSalary._id}` : '/api/salaries'
+      const url = '/api/salaries'
       const method = editingSalary ? 'PUT' : 'POST'
+      const bodyData = { ...salaryForm, totalAmount }
+      if (editingSalary) bodyData.id = editingSalary._id
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...salaryForm, totalAmount })
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchSalaries()
@@ -6896,3 +6902,4 @@ export default function Admin() {
     </>
   )
 }
+
