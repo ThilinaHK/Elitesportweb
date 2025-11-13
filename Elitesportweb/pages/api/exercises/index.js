@@ -16,14 +16,16 @@ export default async function handler(req, res) {
       const { id, planName, memberId, assignedBy, ...otherData } = req.body
       
       // Validate required fields
-      if (!planName || !memberId || !assignedBy) {
+      if (!planName || !memberId) {
         return res.status(400).json({ 
-          error: 'Missing required fields: planName, memberId, and assignedBy are required',
-          received: { planName: !!planName, memberId: !!memberId, assignedBy: !!assignedBy }
+          error: 'Missing required fields: planName and memberId are required',
+          received: { planName: !!planName, memberId: !!memberId }
         })
       }
       
-      const exerciseData = { planName, memberId, assignedBy, ...otherData }
+      // Set assignedBy to 'Admin' if not provided
+      const finalAssignedBy = assignedBy || 'Admin'
+      const exerciseData = { planName, memberId, assignedBy: finalAssignedBy, ...otherData }
       
       // If ID provided, update existing exercise
       if (id) {
@@ -52,13 +54,15 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Exercise ID is required for update' })
       }
       
-      if (!planName || !memberId || !assignedBy) {
+      if (!planName || !memberId) {
         return res.status(400).json({ 
-          error: 'Missing required fields: planName, memberId, and assignedBy are required' 
+          error: 'Missing required fields: planName and memberId are required' 
         })
       }
       
-      const exerciseData = { planName, memberId, assignedBy, ...otherData }
+      // Set assignedBy to 'Admin' if not provided
+      const finalAssignedBy = assignedBy || 'Admin'
+      const exerciseData = { planName, memberId, assignedBy: finalAssignedBy, ...otherData }
       const updatedExercise = await Exercise.findByIdAndUpdate(id, exerciseData, { new: true })
       
       if (!updatedExercise) {
