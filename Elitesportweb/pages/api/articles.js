@@ -14,12 +14,24 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const article = new Article(req.body);
+      const { id, ...articleData } = req.body;
+      
+      if (id) {
+        // Update existing article
+        const updatedArticle = await Article.findByIdAndUpdate(id, articleData, { new: true });
+        if (!updatedArticle) {
+          return res.status(404).json({ error: 'Article not found' });
+        }
+        return res.status(200).json({ success: true, article: updatedArticle });
+      }
+      
+      // Create new article
+      const article = new Article(articleData);
       await article.save();
       res.status(201).json({ success: true, article });
     } catch (error) {
-      console.error('Error creating article:', error);
-      res.status(500).json({ error: 'Failed to create article' });
+      console.error('Error saving article:', error);
+      res.status(500).json({ error: 'Failed to save article' });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });

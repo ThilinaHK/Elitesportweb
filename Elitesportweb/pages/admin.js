@@ -131,6 +131,7 @@ export default function Admin() {
     memberName: '',
     planName: '',
     description: '',
+    assignedBy: 'Admin',
     exercises: [{ name: '', sets: '', reps: '', weight: '', rest: '' }],
     duration: '',
     difficulty: 'beginner',
@@ -1396,6 +1397,40 @@ export default function Admin() {
     }
   }
 
+  const handleExerciseSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const url = '/api/exercises'
+      const method = 'POST'
+      const bodyData = editingExercise ? { ...exerciseForm, id: editingExercise._id } : exerciseForm
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
+      })
+      if (response.ok) {
+        fetchExercises()
+        setShowExerciseForm(false)
+        setEditingExercise(null)
+        setExerciseForm({
+          memberId: '',
+          memberName: '',
+          planName: '',
+          description: '',
+          assignedBy: 'Admin',
+          exercises: [{ name: '', sets: '', reps: '', weight: '', rest: '' }],
+          duration: '',
+          difficulty: 'beginner',
+          notes: ''
+        })
+        showToast(editingExercise ? 'Exercise plan updated successfully!' : 'Exercise plan created successfully!', 'success')
+      }
+    } catch (error) {
+      console.error('Error saving exercise plan:', error)
+      showToast('Error saving exercise plan', 'error')
+    }
+  }
+
   const handleDietSubmit = async (e) => {
     e.preventDefault()
     try {
@@ -1500,10 +1535,11 @@ export default function Admin() {
     try {
       const url = '/api/classes'
       const method = 'POST'
+      const bodyData = editingClass ? { ...classForm, id: editingClass._id } : classForm
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(classForm)
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchClasses()
