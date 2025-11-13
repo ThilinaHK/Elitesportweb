@@ -565,7 +565,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = '/api/posts'
-      const method = editingArticle ? 'PUT' : 'POST'
+      const method = 'POST'
       const bodyData = {...articleForm, type: 'article', tags: articleForm.tags.filter(t => t.trim() !== '')}
       if (editingArticle) bodyData.id = editingArticle._id
       const response = await fetch(url, {
@@ -876,7 +876,7 @@ export default function Admin() {
         requirements: eventForm.requirements.split(',').map(r => r.trim()).filter(r => r)
       }
       const url = '/api/events'
-      const method = editingEvent ? 'PUT' : 'POST'
+      const method = 'POST'
       if (editingEvent) eventData.id = editingEvent._id
       const response = await fetch(url, {
         method,
@@ -968,7 +968,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = '/api/videos'
-      const method = editingVideo ? 'PUT' : 'POST'
+      const method = 'POST'
       const bodyData = editingVideo ? { ...videoForm, id: editingVideo._id } : videoForm
       const response = await fetch(url, {
         method,
@@ -991,7 +991,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = '/api/articles'
-      const method = editingArticle2 ? 'PUT' : 'POST'
+      const method = 'POST'
       const bodyData = editingArticle2 ? { ...articleForm2, id: editingArticle2._id } : articleForm2
       const response = await fetch(url, {
         method,
@@ -1311,7 +1311,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = '/api/quotes'
-      const method = editingQuote ? 'PUT' : 'POST'
+      const method = 'POST'
       const bodyData = editingQuote ? { ...quoteForm, id: editingQuote._id } : quoteForm
       const response = await fetch(url, {
         method,
@@ -1396,7 +1396,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = '/api/diets'
-      const method = editingDiet ? 'PUT' : 'POST'
+      const method = 'POST'
       const bodyData = editingDiet ? { ...dietForm, id: editingDiet._id } : dietForm
       const response = await fetch(url, {
         method,
@@ -1495,7 +1495,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = '/api/classes'
-      const method = editingClass ? 'PUT' : 'POST'
+      const method = 'POST'
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -1751,7 +1751,7 @@ export default function Admin() {
     const totalAmount = parseFloat(salaryForm.baseSalary) + parseFloat(salaryForm.bonuses || 0) - parseFloat(salaryForm.deductions || 0)
     try {
       const url = '/api/salaries'
-      const method = editingSalary ? 'PUT' : 'POST'
+      const method = 'POST'
       const bodyData = { ...salaryForm, totalAmount }
       if (editingSalary) bodyData.id = editingSalary._id
       const response = await fetch(url, {
@@ -6459,7 +6459,7 @@ export default function Admin() {
                         e.preventDefault()
                         try {
                           const url = '/api/exercises'
-                          const method = editingExercise ? 'PUT' : 'POST'
+                          const method = 'POST'
                           const response = await fetch(url, {
                             method,
                             headers: { 'Content-Type': 'application/json' },
