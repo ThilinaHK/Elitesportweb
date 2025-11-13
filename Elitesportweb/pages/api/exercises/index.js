@@ -13,7 +13,19 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const exercise = await Exercise.create(req.body)
+      const { id, ...exerciseData } = req.body
+      
+      // If ID provided, update existing exercise
+      if (id) {
+        const updatedExercise = await Exercise.findByIdAndUpdate(id, exerciseData, { new: true })
+        if (!updatedExercise) {
+          return res.status(404).json({ error: 'Exercise not found' })
+        }
+        return res.json(updatedExercise)
+      }
+      
+      // Create new exercise
+      const exercise = await Exercise.create(exerciseData)
       res.status(201).json(exercise)
     } catch (error) {
       res.status(500).json({ error: 'Failed to create exercise plan' })

@@ -20,11 +20,12 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     try {
       await dbConnect()
-      let postData = { ...req.body }
+      const { id, ...bodyData } = req.body
+      let postData = { ...bodyData }
       
       // Handle video posts
-      if (req.body.type !== 'article' && req.body.youtubeUrl) {
-        const videoId = req.body.youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1]
+      if (bodyData.type !== 'article' && bodyData.youtubeUrl) {
+        const videoId = bodyData.youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1]
         if (!videoId) {
           return res.status(400).json({ error: 'Invalid YouTube URL' })
         }
@@ -32,10 +33,19 @@ export default async function handler(req, res) {
       }
       
       // Handle article posts
-      if (req.body.type === 'article') {
-        if (!req.body.content || !req.body.excerpt) {
+      if (bodyData.type === 'article') {
+        if (!bodyData.content || !bodyData.excerpt) {
           return res.status(400).json({ error: 'Articles require content and excerpt' })
         }
+      }
+      
+      // If ID provided, update existing post
+      if (id) {
+        const updatedPost = await Post.findByIdAndUpdate(id, postData, { new: true })
+        if (!updatedPost) {
+          return res.status(404).json({ error: 'Post not found' })
+        }
+        return res.json(updatedPost)
       }
       
       // Set approval status to pending for new posts

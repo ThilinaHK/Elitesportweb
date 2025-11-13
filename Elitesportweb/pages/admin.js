@@ -520,12 +520,13 @@ export default function Admin() {
   const handlePostSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingPost ? `/api/posts/${editingPost._id}` : '/api/posts'
+      const url = '/api/posts'
       const method = 'POST'
+      const bodyData = editingPost ? { ...postForm, id: editingPost._id } : postForm
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postForm)
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchPosts()
@@ -563,12 +564,14 @@ export default function Admin() {
   const handleArticleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingArticle ? `/api/posts/${editingArticle._id}` : '/api/posts'
+      const url = '/api/posts'
       const method = editingArticle ? 'PUT' : 'POST'
+      const bodyData = {...articleForm, type: 'article', tags: articleForm.tags.filter(t => t.trim() !== '')}
+      if (editingArticle) bodyData.id = editingArticle._id
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({...articleForm, type: 'article', tags: articleForm.tags.filter(t => t.trim() !== '')})
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchPosts()
@@ -872,8 +875,9 @@ export default function Admin() {
         ...eventForm,
         requirements: eventForm.requirements.split(',').map(r => r.trim()).filter(r => r)
       }
-      const url = editingEvent ? `/api/events/${editingEvent._id}` : '/api/events'
+      const url = '/api/events'
       const method = editingEvent ? 'PUT' : 'POST'
+      if (editingEvent) eventData.id = editingEvent._id
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -963,12 +967,13 @@ export default function Admin() {
   const handleVideoSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingVideo ? `/api/videos/${editingVideo._id}` : '/api/videos'
+      const url = '/api/videos'
       const method = editingVideo ? 'PUT' : 'POST'
+      const bodyData = editingVideo ? { ...videoForm, id: editingVideo._id } : videoForm
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(videoForm)
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchVideos()
@@ -985,12 +990,13 @@ export default function Admin() {
   const handleArticleSubmit2 = async (e) => {
     e.preventDefault()
     try {
-      const url = editingArticle2 ? `/api/articles/${editingArticle2._id}` : '/api/articles'
+      const url = '/api/articles'
       const method = editingArticle2 ? 'PUT' : 'POST'
+      const bodyData = editingArticle2 ? { ...articleForm2, id: editingArticle2._id } : articleForm2
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(articleForm2)
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchArticles2()
@@ -1304,12 +1310,13 @@ export default function Admin() {
   const handleQuoteSubmit = async (e) => {
     e.preventDefault()
     try {
-      const url = editingQuote ? `/api/quotes/${editingQuote._id}` : '/api/quotes'
+      const url = '/api/quotes'
       const method = editingQuote ? 'PUT' : 'POST'
+      const bodyData = editingQuote ? { ...quoteForm, id: editingQuote._id } : quoteForm
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(quoteForm)
+        body: JSON.stringify(bodyData)
       })
       if (response.ok) {
         fetchQuotes()
@@ -1682,7 +1689,7 @@ export default function Admin() {
     e.preventDefault()
     try {
       const url = '/api/payments'
-      const method = editingPayment ? 'PUT' : 'POST'
+      const method = 'POST'
       const bodyData = editingPayment ? { ...paymentForm, id: editingPayment._id } : paymentForm
       const response = await fetch(url, {
         method,
@@ -6451,7 +6458,7 @@ export default function Admin() {
                       <form onSubmit={async (e) => {
                         e.preventDefault()
                         try {
-                          const url = editingExercise ? `/api/exercises/${editingExercise._id}` : '/api/exercises'
+                          const url = '/api/exercises'
                           const method = editingExercise ? 'PUT' : 'POST'
                           const response = await fetch(url, {
                             method,
@@ -6902,4 +6909,5 @@ export default function Admin() {
     </>
   )
 }
+
 
