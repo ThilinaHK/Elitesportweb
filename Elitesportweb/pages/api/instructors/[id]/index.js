@@ -51,11 +51,9 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const instructorId = req.body.id || id
-      const updateData = req.body.id ? { ...req.body } : req.body
-      delete updateData.id
+      const { id: instructorId, ...updateData } = req.body
       if (!instructorId) {
-        return res.status(400).json({ error: 'Instructor ID is required' })
+        return res.status(400).json({ error: 'Instructor ID is required in request body' })
       }
       
       if (updateData.image && updateData.image.length > 1000000) {

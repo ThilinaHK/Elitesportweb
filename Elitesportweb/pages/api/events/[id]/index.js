@@ -17,11 +17,9 @@ export default async function handler(req, res) {
     case 'POST':
 
       try {
-        const eventId = req.body.id || id
-        const updateData = req.body.id ? { ...req.body } : req.body
-        delete updateData.id
+        const { id: eventId, ...updateData } = req.body
         if (!eventId) {
-          return res.status(400).json({ error: 'Event ID is required' })
+          return res.status(400).json({ error: 'Event ID is required in request body' })
         }
         let event = await Event.findByIdAndUpdate(eventId, updateData, { new: true }).catch(() => null)
         if (!event) {

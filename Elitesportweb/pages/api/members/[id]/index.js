@@ -39,10 +39,9 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
-      const memberId = req.body.id || id
-      const { email, phone, username, ...updateData } = req.body
+      const { id: memberId, email, phone, username, ...updateData } = req.body
       if (!memberId) {
-        return res.status(400).json({ error: 'Member ID is required' })
+        return res.status(400).json({ error: 'Member ID is required in request body' })
       }
       
       let currentMember = await Member.findById(memberId).catch(() => null)

@@ -36,11 +36,9 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const paymentId = req.body.id || id
-      const updateData = req.body.id ? { ...req.body } : req.body
-      delete updateData.id
+      const { id: paymentId, ...updateData } = req.body
       if (!paymentId) {
-        return res.status(400).json({ error: 'Payment ID is required' })
+        return res.status(400).json({ error: 'Payment ID is required in request body' })
       }
       let payment = await Payment.findByIdAndUpdate(paymentId, updateData, { 
         new: true, 
