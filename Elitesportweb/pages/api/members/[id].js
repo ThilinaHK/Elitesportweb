@@ -15,8 +15,9 @@ export default async function handler(req, res) {
       res.json({ member });
     }
     else if (req.method === 'PUT') {
-      const member = await Member.findByIdAndUpdate(id, req.body, { new: true }) || 
-                     await Member.findOneAndUpdate({ memberId: id }, req.body, { new: true });
+      const { assignedClasses, ...updateData } = req.body;
+      const member = await Member.findByIdAndUpdate(id, updateData, { new: true }) || 
+                     await Member.findOneAndUpdate({ memberId: id }, updateData, { new: true });
       if (!member) {
         return res.status(404).json({ error: 'Member not found' });
       }

@@ -19,9 +19,10 @@ export default async function handler(req, res) {
       res.json({ member });
     } 
     else if (req.method === 'PUT') {
+      const { assignedClasses, ...updateData } = req.body;
       const member = await Member.findOneAndUpdate(
         { memberId }, 
-        req.body, 
+        updateData, 
         { new: true, runValidators: true }
       );
       if (!member) {

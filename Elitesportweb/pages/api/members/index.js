@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
-      const { id, email, phone, username, ...updateData } = req.body
+      const { id, email, phone, username, assignedClasses, ...updateData } = req.body
       
       // If ID provided, update existing member
       if (id) {
@@ -74,6 +74,7 @@ export default async function handler(req, res) {
         if (username) finalUpdateData.username = username.toLowerCase().trim()
         if (finalUpdateData.weight) finalUpdateData.weight = Number(finalUpdateData.weight)
         if (finalUpdateData.height) finalUpdateData.height = Number(finalUpdateData.height)
+        delete finalUpdateData.assignedClasses
         
         const member = await Member.findByIdAndUpdate(actualId, finalUpdateData, { 
           new: true, 
@@ -110,8 +111,9 @@ export default async function handler(req, res) {
       const memberId = 'ESA' + nextNumber.toString().padStart(6, '0')
       
       // Convert string numbers to actual numbers and clean username
+      const { assignedClasses: _, ...cleanBody } = req.body;
       const memberData = {
-        ...req.body,
+        ...cleanBody,
         memberId,
         username: username ? username.toLowerCase().trim() : undefined,
         email: email.toLowerCase().trim(),
