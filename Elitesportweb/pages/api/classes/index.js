@@ -24,13 +24,23 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
-      const classData = { ...req.body }
+      const { id, ...classData } = req.body
       
       // Convert numeric fields
       if (classData.duration) classData.duration = Number(classData.duration)
       if (classData.capacity) classData.capacity = Number(classData.capacity)
       if (classData.admissionFee) classData.admissionFee = Number(classData.admissionFee)
       
+      // If ID provided, update existing class
+      if (id) {
+        const updatedClass = await Class.findByIdAndUpdate(id, classData, { new: true })
+        if (!updatedClass) {
+          return res.status(404).json({ error: 'Class not found' })
+        }
+        return res.json(updatedClass)
+      }
+      
+      // Create new class
       const newClass = await Class.create(classData)
       res.status(201).json(newClass)
     } catch (error) {

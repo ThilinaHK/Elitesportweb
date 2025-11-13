@@ -11,7 +11,19 @@ export default async function handler(req, res) {
       const payments = await Payment.find({}).sort({ paymentDate: -1 })
       res.json(payments)
     } else if (req.method === 'POST') {
-      const payment = await Payment.create(req.body)
+      const { id, ...paymentData } = req.body
+      
+      // If ID provided, update existing payment
+      if (id) {
+        const payment = await Payment.findByIdAndUpdate(id, paymentData, { new: true })
+        if (!payment) {
+          return res.status(404).json({ error: 'Payment not found' })
+        }
+        return res.json(payment)
+      }
+      
+      // Create new payment
+      const payment = await Payment.create(paymentData)
       
       // Send notifications after successful payment
       try {

@@ -24,7 +24,22 @@ export default async function handler(req, res) {
     try {
       await dbConnect()
       
-      // Generate unique instructor ID with EL00 prefix
+      const { id, ...instructorData } = req.body
+      
+      // Convert numeric fields
+      if (instructorData.experience) instructorData.experience = Number(instructorData.experience)
+      if (instructorData.salary) instructorData.salary = Number(instructorData.salary)
+      
+      // If ID provided, update existing instructor
+      if (id) {
+        const updatedInstructor = await Instructor.findByIdAndUpdate(id, instructorData, { new: true })
+        if (!updatedInstructor) {
+          return res.status(404).json({ error: 'Instructor not found' })
+        }
+        return res.json(updatedInstructor)
+      }
+      
+      // Generate unique instructor ID with EL00 prefix for new instructor
       const lastInstructor = await Instructor.findOne({}, {}, { sort: { 'createdAt': -1 } })
       let nextNumber = 1
       if (lastInstructor && lastInstructor.instructorId) {
@@ -33,15 +48,7 @@ export default async function handler(req, res) {
       }
       const instructorId = `EL00${nextNumber.toString().padStart(3, '0')}`
       
-      const instructorData = {
-        ...req.body,
-        instructorId
-      }
-      
-      // Convert numeric fields
-      if (instructorData.experience) instructorData.experience = Number(instructorData.experience)
-      if (instructorData.salary) instructorData.salary = Number(instructorData.salary)
-      
+      instructorData.instructorId = instructorId
       const instructor = await Instructor.create(instructorData)
       res.status(201).json(instructor)
     } catch (error) {

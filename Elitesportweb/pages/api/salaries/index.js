@@ -9,7 +9,19 @@ export default async function handler(req, res) {
       const salaries = await Salary.find({}).sort({ month: -1 })
       res.json(salaries)
     } else if (req.method === 'POST') {
-      const salary = await Salary.create(req.body)
+      const { id, ...salaryData } = req.body
+      
+      // If ID provided, update existing salary
+      if (id) {
+        const updatedSalary = await Salary.findByIdAndUpdate(id, salaryData, { new: true })
+        if (!updatedSalary) {
+          return res.status(404).json({ error: 'Salary not found' })
+        }
+        return res.json(updatedSalary)
+      }
+      
+      // Create new salary
+      const salary = await Salary.create(salaryData)
       res.status(201).json(salary)
     } else {
       res.status(405).json({ message: 'Method not allowed' })
