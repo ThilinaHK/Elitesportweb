@@ -12,9 +12,9 @@ export default function Articles() {
 
   const fetchArticles = async () => {
     try {
-      const response = await fetch('/api/posts')
+      const response = await fetch('/api/articles')
       const data = await response.json()
-      setArticles((data || []).filter(post => post.type === 'article'))
+      setArticles(data.articles || [])
     } catch (error) {
       console.error('Error fetching articles:', error)
     } finally {

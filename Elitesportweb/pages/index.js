@@ -106,11 +106,11 @@ function LatestPosts() {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('/api/posts')
+      const response = await fetch('/api/articles')
       const data = await response.json()
-      setPosts((data || []).filter(post => post.type === 'article').slice(0, 3))
+      setPosts((data.articles || data || []).filter(article => article.isActive !== false).slice(0, 3))
     } catch (error) {
-      console.error('Error fetching posts:', error)
+      console.error('Error fetching articles:', error)
     } finally {
       setLoading(false)
     }
@@ -148,19 +148,19 @@ function LatestPosts() {
             <div className="card-body">
               <div className="mb-2">
                 <span className={`badge ${getCategoryColor(post.category)} text-white`}>
-                  {post.category?.toUpperCase() || 'GENERAL'}
+                  {post.category?.toUpperCase() || 'FITNESS'}
                 </span>
-                {post.isPublished && (
-                  <span className="badge bg-success text-white ms-1">PUBLISHED</span>
+                {post.isActive !== false && (
+                  <span className="badge bg-success text-white ms-1">ACTIVE</span>
                 )}
               </div>
               <h5 className="card-title">{post.title}</h5>
               <p className="card-text text-muted small">
-                {post.excerpt || post.content?.substring(0, 100) + '...' || 'Read this amazing article...'}
+                {post.excerpt || post.content?.substring(0, 100) + '...' || 'Read this amazing fitness article...'}
               </p>
               <div className="d-flex justify-content-between align-items-center">
                 <small className="text-muted">
-                  {new Date(post.createdAt).toLocaleDateString()}
+                  {new Date(post.createdAt || post.publishedAt).toLocaleDateString()}
                 </small>
                 <a href="/articles" className="btn btn-sm btn-outline-primary">Read More</a>
               </div>
@@ -277,10 +277,16 @@ function TrendingVideos() {
   const fetchVideos = async () => {
     try {
       const response = await fetch('/api/posts')
-      const data = await response.json()
-      setVideos((data || []).filter(post => post.type === 'trending' || post.type === 'normal').slice(0, 3))
+      if (response.ok) {
+        const data = await response.json()
+        setVideos((data || []).filter(post => post.type === 'trending' || post.type === 'normal').slice(0, 3))
+      } else {
+        // Fallback to empty array if posts API doesn't exist
+        setVideos([])
+      }
     } catch (error) {
       console.error('Error fetching videos:', error)
+      setVideos([])
     } finally {
       setLoading(false)
     }

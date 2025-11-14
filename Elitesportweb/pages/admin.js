@@ -64,17 +64,7 @@ export default function Admin() {
     category: 'general',
     type: 'normal'
   })
-  const [articleForm, setArticleForm] = useState({
-    title: '',
-    content: '',
-    excerpt: '',
-    category: 'general',
-    featuredImage: '',
-    tags: [''],
-    isPublished: true
-  })
-  const [editingArticle, setEditingArticle] = useState(null)
-  const [showArticleForm, setShowArticleForm] = useState(false)
+
   const [quotes, setQuotes] = useState([])
   const [quoteForm, setQuoteForm] = useState({
     text: '',
@@ -200,10 +190,11 @@ export default function Admin() {
   const [paymentSearch, setPaymentSearch] = useState('')
   const [postFilter, setPostFilter] = useState('all')
   const [postSearch, setPostSearch] = useState('')
-  const [articleFilter, setArticleFilter] = useState('all')
-  const [articleSearch, setArticleSearch] = useState('')
+
   const [dietFilter, setDietFilter] = useState('all')
   const [dietSearch, setDietSearch] = useState('')
+  const [articleFilter, setArticleFilter] = useState('all')
+  const [articleSearch, setArticleSearch] = useState('')
   const [events, setEvents] = useState([])
   const [eventForm, setEventForm] = useState({
     title: '',
@@ -562,51 +553,7 @@ export default function Admin() {
     }
   }
 
-  const handleArticleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      const url = '/api/posts'
-      const method = 'POST'
-      const bodyData = {...articleForm, type: 'article', tags: articleForm.tags.filter(t => t.trim() !== '')}
-      if (editingArticle) bodyData.id = editingArticle._id
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyData)
-      })
-      if (response.ok) {
-        fetchPosts()
-        setShowArticleForm(false)
-        setEditingArticle(null)
-        setArticleForm({
-          title: '',
-          content: '',
-          excerpt: '',
-          category: 'general',
-          featuredImage: '',
-          tags: [''],
-          isPublished: true
-        })
-        showToast(editingArticle ? 'Article updated successfully!' : 'Article created successfully!', 'success')
-      }
-    } catch (error) {
-      console.error('Error saving article:', error)
-    }
-  }
 
-  const editArticle = (article) => {
-    setEditingArticle(article)
-    setArticleForm({
-      title: article.title || '',
-      content: article.content || '',
-      excerpt: article.excerpt || '',
-      category: article.category || 'general',
-      featuredImage: article.featuredImage || '',
-      tags: article.tags || [''],
-      isPublished: article.isPublished !== false
-    })
-    setShowArticleForm(true)
-  }
 
   const fetchQuotes = async () => {
     try {
@@ -719,31 +666,7 @@ export default function Admin() {
     return filteredPosts
   }
 
-  const getFilteredArticles = () => {
-    let filteredArticles = posts.filter(post => post.type === 'article')
-    
-    if (articleFilter !== 'all') {
-      if (articleFilter === 'published') {
-        filteredArticles = filteredArticles.filter(a => a.isPublished)
-      } else if (articleFilter === 'draft') {
-        filteredArticles = filteredArticles.filter(a => !a.isPublished)
-      } else {
-        filteredArticles = filteredArticles.filter(a => a.category === articleFilter)
-      }
-    }
-    
-    if (articleSearch) {
-      const searchTerm = articleSearch.toLowerCase()
-      filteredArticles = filteredArticles.filter(a => 
-        (a.title || '').toLowerCase().includes(searchTerm) ||
-        (a.content || '').toLowerCase().includes(searchTerm) ||
-        (a.category || '').toLowerCase().includes(searchTerm) ||
-        (a.tags || []).some(tag => tag.toLowerCase().includes(searchTerm))
-      )
-    }
-    
-    return filteredArticles
-  }
+
 
   const getFilteredDiets = () => {
     let filteredDiets = diets
@@ -768,6 +691,26 @@ export default function Admin() {
     }
     
     return filteredDiets
+  }
+
+  const getFilteredArticles2 = () => {
+    let filteredArticles = articles
+    
+    if (articleFilter !== 'all') {
+      filteredArticles = filteredArticles.filter(a => a.category === articleFilter)
+    }
+    
+    if (articleSearch) {
+      const searchTerm = articleSearch.toLowerCase()
+      filteredArticles = filteredArticles.filter(a => 
+        (a.title || '').toLowerCase().includes(searchTerm) ||
+        (a.content || '').toLowerCase().includes(searchTerm) ||
+        (a.author || '').toLowerCase().includes(searchTerm) ||
+        (a.category || '').toLowerCase().includes(searchTerm)
+      )
+    }
+    
+    return filteredArticles
   }
 
   const getFilteredPayments = () => {
@@ -3962,6 +3905,245 @@ export default function Admin() {
                   </>
                 )}
 
+                {activeTab === 'articles' && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                      <h3 style={{ margin: 0, color: '#333' }}>Articles Management</h3>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <select 
+                          value={articleFilter}
+                          onChange={(e) => setArticleFilter(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px' }}
+                        >
+                          <option value="all">All Articles ({articles.length})</option>
+                          <option value="fitness">Fitness ({articles.filter(a => a.category === 'fitness').length})</option>
+                          <option value="nutrition">Nutrition ({articles.filter(a => a.category === 'nutrition').length})</option>
+                          <option value="crossfit">CrossFit ({articles.filter(a => a.category === 'crossfit').length})</option>
+                          <option value="karate">Karate ({articles.filter(a => a.category === 'karate').length})</option>
+                          <option value="zumba">Zumba ({articles.filter(a => a.category === 'zumba').length})</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          placeholder="Search by title, content, or category" 
+                          value={articleSearch}
+                          onChange={(e) => setArticleSearch(e.target.value)}
+                          style={{ padding: '8px 15px', border: '2px solid #f36100', borderRadius: '5px', fontSize: '14px', minWidth: '200px' }}
+                        />
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setShowArticleForm2(!showArticleForm2)
+                          setEditingArticle2(null)
+                          setArticleForm2({ title: '', content: '', author: '', category: 'fitness', excerpt: '', readTime: '' })
+                        }}
+                        style={{
+                          backgroundColor: '#f36100',
+                          color: 'white',
+                          border: 'none',
+                          padding: '10px 20px',
+                          borderRadius: '5px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {showArticleForm2 ? 'Cancel' : 'Add New Article'}
+                      </button>
+                    </div>
+
+                    {showArticleForm2 && (
+                      <form onSubmit={handleArticleSubmit2} style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '5px', marginBottom: '30px' }}>
+                        <div className="row">
+                          <div className="col-md-6">
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Title *</label>
+                            <input 
+                              type="text" 
+                              placeholder="Enter article title" 
+                              value={articleForm2.title}
+                              onChange={(e) => setArticleForm2({...articleForm2, title: e.target.value})}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Author *</label>
+                            <input 
+                              type="text" 
+                              placeholder="Enter author name" 
+                              value={articleForm2.author}
+                              onChange={(e) => setArticleForm2({...articleForm2, author: e.target.value})}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Category *</label>
+                            <select 
+                              value={articleForm2.category}
+                              onChange={(e) => setArticleForm2({...articleForm2, category: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            >
+                              <option value="fitness">Fitness</option>
+                              <option value="nutrition">Nutrition</option>
+                              <option value="crossfit">CrossFit</option>
+                              <option value="karate">Karate</option>
+                              <option value="zumba">Zumba</option>
+                            </select>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Read Time</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g., 5 min read" 
+                              value={articleForm2.readTime}
+                              onChange={(e) => setArticleForm2({...articleForm2, readTime: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+                            />
+                          </div>
+                          <div className="col-md-6">
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Excerpt</label>
+                            <textarea 
+                              placeholder="Enter article excerpt (optional)" 
+                              value={articleForm2.excerpt}
+                              onChange={(e) => setArticleForm2({...articleForm2, excerpt: e.target.value})}
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px', height: '100px' }}
+                            />
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Content *</label>
+                            <textarea 
+                              placeholder="Enter article content" 
+                              value={articleForm2.content}
+                              onChange={(e) => setArticleForm2({...articleForm2, content: e.target.value})}
+                              required
+                              style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '4px', height: '200px' }}
+                            />
+                          </div>
+                        </div>
+                        <button 
+                          type="submit"
+                          style={{
+                            backgroundColor: '#28a745',
+                            color: 'white',
+                            border: 'none',
+                            padding: '12px 30px',
+                            borderRadius: '5px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {editingArticle2 ? 'Update Article' : 'Create Article'}
+                        </button>
+                      </form>
+                    )}
+
+                    <div style={{ marginBottom: '20px' }}>
+                      <p style={{ margin: 0 }}><strong>Showing: {articles.filter(a => {
+                        if (articleFilter === 'all') return true
+                        return a.category === articleFilter
+                      }).filter(a => {
+                        if (!articleSearch) return true
+                        const searchTerm = articleSearch.toLowerCase()
+                        return (a.title || '').toLowerCase().includes(searchTerm) ||
+                               (a.content || '').toLowerCase().includes(searchTerm) ||
+                               (a.category || '').toLowerCase().includes(searchTerm)
+                      }).length} / {articles.length} Articles</strong></p>
+                    </div>
+
+                    {articles.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '50px', color: '#666' }}>
+                        <p>No articles created yet.</p>
+                      </div>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="table table-striped">
+                          <thead style={{ backgroundColor: '#f36100', color: 'white' }}>
+                            <tr>
+                              <th>Title</th>
+                              <th>Author</th>
+                              <th>Category</th>
+                              <th>Read Time</th>
+                              <th>Created</th>
+                              <th>Status</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {articles.filter(a => {
+                              if (articleFilter === 'all') return true
+                              return a.category === articleFilter
+                            }).filter(a => {
+                              if (!articleSearch) return true
+                              const searchTerm = articleSearch.toLowerCase()
+                              return (a.title || '').toLowerCase().includes(searchTerm) ||
+                                     (a.content || '').toLowerCase().includes(searchTerm) ||
+                                     (a.category || '').toLowerCase().includes(searchTerm)
+                            }).map((article) => (
+                              <tr key={article._id}>
+                                <td>
+                                  <strong>{article.title}</strong>
+                                  {article.excerpt && (
+                                    <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                                      {article.excerpt.substring(0, 60)}...
+                                    </div>
+                                  )}
+                                </td>
+                                <td>{article.author}</td>
+                                <td>
+                                  <span style={{ 
+                                    backgroundColor: article.category === 'fitness' ? '#28a745' : article.category === 'nutrition' ? '#17a2b8' : article.category === 'crossfit' ? '#f36100' : article.category === 'karate' ? '#2196f3' : '#9c27b0',
+                                    color: 'white',
+                                    padding: '4px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '11px',
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {article.category}
+                                  </span>
+                                </td>
+                                <td>{article.readTime || 'N/A'}</td>
+                                <td>{new Date(article.createdAt).toLocaleDateString()}</td>
+                                <td>
+                                  <span style={{ 
+                                    backgroundColor: article.isActive ? '#d4edda' : '#f8d7da',
+                                    color: article.isActive ? '#155724' : '#721c24',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '11px'
+                                  }}>
+                                    {article.isActive ? 'ACTIVE' : 'INACTIVE'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <div style={{ display: 'flex', gap: '5px' }}>
+                                    <button 
+                                      onClick={() => editArticle2(article)}
+                                      style={{
+                                        backgroundColor: '#28a745',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '5px 10px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button 
+                                      onClick={() => deleteArticle2(article._id)}
+                                      style={{
+                                        backgroundColor: '#dc3545',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '5px 10px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                )}
+
                 {activeTab === 'bookings' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -5299,10 +5481,10 @@ export default function Admin() {
                           cursor: 'pointer'
                         }}
                       >
-                        {showArticleForm ? 'Cancel' : 'Add Article'}
+                        {showArticleForm2 ? 'Cancel' : 'Add Article'}
                       </button>
                     </div>
-                    {showArticleForm && (
+                    {showArticleForm2 && (
                       <form onSubmit={handleArticleSubmit} style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '5px', marginBottom: '30px' }}>
                         <div className="row">
                           <div className="col-md-6">

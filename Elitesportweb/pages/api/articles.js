@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const articles = await Article.find({ isActive: true }).sort({ createdAt: -1 });
+      const articles = await Article.find({}).sort({ createdAt: -1 });
       res.status(200).json({ success: true, articles });
     } catch (error) {
       console.error('Error fetching articles:', error);
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       }
       
       // Create new article
-      const article = new Article(articleData);
+      const article = new Article({ ...articleData, isActive: true });
       await article.save();
       res.status(201).json({ success: true, article });
     } catch (error) {
