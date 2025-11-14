@@ -4,9 +4,7 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose']
-  }
+
 }
 
 module.exports = nextConfig

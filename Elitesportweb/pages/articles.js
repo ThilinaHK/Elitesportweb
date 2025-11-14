@@ -82,7 +82,7 @@ export default function Articles() {
                         <small className="text-muted">
                           {new Date(article.createdAt).toLocaleDateString()}
                         </small>
-                        <button className="btn btn-sm btn-outline-primary">Read More</button>
+                        <a href={`/articles/${article._id}`} className="btn btn-sm btn-outline-primary">Read More</a>
                       </div>
                     </div>
                   </div>

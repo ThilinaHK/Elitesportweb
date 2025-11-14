@@ -162,7 +162,7 @@ function LatestPosts() {
                 <small className="text-muted">
                   {new Date(post.createdAt || post.publishedAt).toLocaleDateString()}
                 </small>
-                <a href="/articles" className="btn btn-sm btn-outline-primary">Read More</a>
+                <a href={`/articles/${post._id}`} className="btn btn-sm btn-outline-primary">Read More</a>
               </div>
             </div>
           </div>
@@ -549,13 +549,13 @@ export default function Home() {
           <div className="text-center mb-5">
             <div className="mb-3">
               <span className="badge px-3 py-2" style={{background: 'linear-gradient(45deg, #28a745, #20c997)', color: 'white', borderRadius: '25px', fontSize: '14px'}}>
-                📰 LATEST UPDATES
+                💪 FITNESS ARTICLES
               </span>
             </div>
             <h2 className="fw-bold mb-3" style={{fontSize: '3rem', background: 'linear-gradient(45deg, #333, #f36100)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
-              Latest Posts & Articles
+              Fitness Articles
             </h2>
-            <p className="text-muted fs-5">Stay updated with fitness tips, nutrition advice, and academy news</p>
+            <p className="text-muted fs-5">Stay updated with fitness tips, nutrition advice, and expert guidance from our trainers</p>
           </div>
           <LatestPosts />
           <div className="text-center mt-5">
